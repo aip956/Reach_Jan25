@@ -248,16 +248,6 @@ public class Game {
         // saveGameDataToDatabase();
         gameUI.close();        
     }
-
-    // // Save data to database
-    // public void saveGameDataToDatabase() {
-    //     try {
-    //         gameDataDAO.saveGameData(this);
-    //         gameUI.displayMessage("Game data saved");
-    //     } catch (SQLException e) {
-    //         gameUI.displayMessage("Error occured saving game data: " + e.getMessage());
-    //     }
-    // }
 }
 
 
