@@ -2,6 +2,8 @@
 Data Access Object; Handles all database interactions related to GameData,
     abstracting away the specifics of data persistence.
 */
+// To add leaderboard, add method to retrieve top N players
+// Indices set on fields for WHERE or ORDER BY
 package DAO;
 import Models.Game;
 import Models.Guesser;
