@@ -102,14 +102,8 @@ public class SQLiteGameDataDAO implements GameDataDAO {
 
     @Override
     public List<Game> getLeaderboard(int topN) throws SQLException {
-        String leaderboardQuery = "SELECT
-        game_id, 
-        player_name, 
-        rounds_to_solve, 
-        solved, 
-        timestamp, 
-        secret_code,  
-        guesses " +
+        String leaderboardQuery = 
+        "SELECT game_id, player_name, rounds_to_solve, solved, timestamp, secret_code, guesses " +
         "FROM game_data " +
         "WHERE solved = 1 " + // Solved games
         "ORDER BY rounds_to_solve ASC, timestamp ASC " + // Fewest rounds, oldest games first
