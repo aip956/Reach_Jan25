@@ -99,5 +99,47 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             throw e;
         }
     }
+
+    @Override
+    public List<Game> getLeaderboard(int topN) throws SQLException {
+        String leaderboardQuery = "SELECT
+        game_id, 
+        player_name, 
+        rounds_to_solve, 
+        solved, 
+        timestamp, 
+        secret_code,  
+        guesses " +
+        "FROM game_data " +
+        "WHERE solved = 1 " + // Solved games
+        "ORDER BY rounds_to_solve ASC, timestamp ASC " + // Fewest rounds, oldest games first
+        "LIMIT ?";
+        
+    List<Game> leaderboard = new ArrayList<>();
+
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery) {
+            stmt.setInt(1, topN); // Set limit dynamically
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Game game = new Game(
+                        null, // Players not fetched here; may extend if needed
+                        rs.getString("secret_code"),
+                        null); // Replace with GameDataDAO instance if needed
+                    game.setGameID(rs.getInt("game_id"));
+                    game.setPlayerName(rs.getString("player_name"));
+                    game.setRoundsToSolve(rs.getInt("rounds_to_solve"));
+                    game.setSolved(rs.getBoolean("solved"));
+                    game.setFormattedDate(rs.getString("timestamp"));
+                    leaderboard.add(game);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching leaderboard: " + e.getMessage());
+            throw e;
+        }
+        return leaderboard;
+    }
 }
 

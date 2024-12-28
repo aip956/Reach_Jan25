@@ -9,7 +9,7 @@ import java.util.List;
 public interface GameDataDAO {
     // Data Access Object (DAO) interface; allows games to be pulled by playerName and solved
     void saveGameData(Game game) throws SQLException; // Save a game's data to db
-    // Placehold for getTopGames list
+    List<Game> getLeaderboard(int topN) throws SQLException; // New method for leaderboard
 
 }
 
