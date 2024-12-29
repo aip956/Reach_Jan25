@@ -22,33 +22,8 @@ public class MyMastermind {
         dbPath = (dbPath == null || dbPath.isEmpty()) ? "src/data/MM_Reach.db" : dbPath;
         System.out.println("Attempting to connect to the database...");
 
-        // // Check CLI args
-        // boolean showLeaderboard = false;
-        // int topN = 3; // Default show top 3 in leaderboard
-        // for (int i = 0; i < args.length; i++) {
-        //     if ("--leaderboard".equals(args[i]) || "-l".equals(args[i])) {
-        //         showLeaderboard = true;
-        //         if (i + 1 < args.length) {
-        //             try {
-        //                 topN = Integer.parseInt(args[i+1]);
-        //             } catch (NumberFormatException e) {
-        //                 System.err.println("Invalid number for leaderboard. Using default 3.");
-        //             }
-        //         }
-        //         break;
-        //     }
-        // }
 
-        // // Handle leaderboard request
-        // if (showLeaderboard) {
-        //     displayLeaderboard(dbPath, topN);
-        //     return;
-        // }
-
-        
-
-
-        // Shared scanner
+        // Dedicated main scanner
         Scanner scanner = new Scanner(System.in);
         GameDataDAO gameDataDAO; // Declaring outside try block
 
@@ -70,7 +45,7 @@ public class MyMastermind {
             for (int i = 0; i < numPlayers; i++) {
                 System.out.print("Enter name for Player " + (i + 1) + ": ");
                 String playerName = scanner.nextLine();
-                players.add(new Guesser(playerName, scanner)); // Pass player name and shared scanner; instantiate guesser
+                players.add(new Guesser(playerName, scanner)); // Pass player name; shared scanner; instantiate guesser
             }
         
             System.out.println("Players added: " + players.size());
