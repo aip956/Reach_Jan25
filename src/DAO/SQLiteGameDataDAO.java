@@ -112,7 +112,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
     List<Game> leaderboard = new ArrayList<>();
 
     try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery) {
+        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
             stmt.setInt(1, topN); // Set limit dynamically
 
             try (ResultSet rs = stmt.executeQuery()) {

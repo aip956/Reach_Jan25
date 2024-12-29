@@ -9,7 +9,7 @@ import DAO.SQLiteGameDataDAO;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.Scanner;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
@@ -22,28 +22,28 @@ public class MyMastermind {
         dbPath = (dbPath == null || dbPath.isEmpty()) ? "src/data/MM_Reach.db" : dbPath;
         System.out.println("Attempting to connect to the database...");
 
-        // Check CLI args
-        boolean showLeaderboard = false;
-        int topN = 3; // Default show top 3 in leaderboard
-        for (int i = 0; i < args.length; i++) {
-            if ("--leaderboard".equals(args[i]) || "-l".equals(args[i])) {
-                showLeaderboard = true;
-                if (i + 1 < args.length) {
-                    try {
-                        topN = Integer.parseInt(args[i+1]);
-                    } catch (NumberFormatException e) {
-                        System.err.println("Invalid number for leaderboard. Using default 3.");
-                    }
-                }
-                break;
-            }
-        }
+        // // Check CLI args
+        // boolean showLeaderboard = false;
+        // int topN = 3; // Default show top 3 in leaderboard
+        // for (int i = 0; i < args.length; i++) {
+        //     if ("--leaderboard".equals(args[i]) || "-l".equals(args[i])) {
+        //         showLeaderboard = true;
+        //         if (i + 1 < args.length) {
+        //             try {
+        //                 topN = Integer.parseInt(args[i+1]);
+        //             } catch (NumberFormatException e) {
+        //                 System.err.println("Invalid number for leaderboard. Using default 3.");
+        //             }
+        //         }
+        //         break;
+        //     }
+        // }
 
-        // Handle leaderboard request
-        if (showLeaderboard) {
-            displayLeaderboard(dbPath, topN);
-            return;
-        }
+        // // Handle leaderboard request
+        // if (showLeaderboard) {
+        //     displayLeaderboard(dbPath, topN);
+        //     return;
+        // }
 
         
 
@@ -64,6 +64,7 @@ public class MyMastermind {
         try {
             System.out.print("Enter number of players: ");
             int numPlayers = Integer.parseInt(scanner.nextLine());
+            // scanner.nextLine(); // Clear the buffer after reading input
 
             List<Guesser> players = new ArrayList<>();
             for (int i = 0; i < numPlayers; i++) {
@@ -90,7 +91,18 @@ public class MyMastermind {
             // Start game
             Game game = new Game(players, secretCode, gameDataDAO);
             game.startGame();
+
+            // Prompt to show lboard after game
+            System.out.print("See leaderboard? Yes/No: ");
+            String response = scanner.nextLine().trim().toLowerCase();
+            if (response.equals("yes") || response.equals("y")) {
+                System.out.println("Enter number of top players to display");
+                int topN = Integer.parseInt(scanner.nextLine());
+                displayLeaderboard(dbPath, topN);
+            }
+            
         } finally {
+            System.out.println("Game finished.");
             scanner.close(); // Close the scanner
             System.out.println("Scanner closed");
         }
