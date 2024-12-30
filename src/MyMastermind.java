@@ -36,10 +36,25 @@ public class MyMastermind {
             return;
         }
 
+
+        // Check CLI args for leaderboard flag
+        boolean displayLeaderboardFlag = false;
+        int topN = 3; // Default display 3 players
+        if (args.length > 0 && (args[0].equals("--leaderboard") || args[0].equals("--l"))) {
+            displayLeaderboardFlag = true;
+            if (args.length > 1) {
+                try {
+                    topN = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    System.err.println("Invalid number for leaderboard; using default 3.");
+                }
+            }
+        }
+
         try {
             System.out.print("Enter number of players: ");
             int numPlayers = Integer.parseInt(scanner.nextLine());
-            // scanner.nextLine(); // Clear the buffer after reading input
+            
 
             List<Guesser> players = new ArrayList<>();
             for (int i = 0; i < numPlayers; i++) {
