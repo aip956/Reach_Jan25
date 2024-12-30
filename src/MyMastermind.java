@@ -83,13 +83,17 @@ public class MyMastermind {
             game.startGame();
 
             // Prompt to show lboard after game
-            // System.out.print("See leaderboard? Yes/No: ");
-            String response = scanner.nextLine().trim().toLowerCase();
-            if (response.equals("yes") || response.equals("y")) {
-                System.out.println("Enter number of top players to display");
-                int topN = Integer.parseInt(scanner.nextLine());
+            if (displayLeaderboardFlag) {
                 displayLeaderboard(dbPath, topN);
-            }
+            // } else {         
+            //     System.out.print("See leaderboard? Yes/No: ");
+            //     String response = scanner.nextLine().trim().toLowerCase();
+            //     if (response.equals("yes") || response.equals("y")) {
+            //         System.out.println("Enter number of top players to display");
+            //         topN = Integer.parseInt(scanner.nextLine());
+            //         displayLeaderboard(dbPath, topN);
+            //     }
+            // }
             
         } finally {
             System.out.println("Game finished.");
