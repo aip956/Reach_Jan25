@@ -83,7 +83,7 @@ public class MyMastermind {
             game.startGame();
 
             // Prompt to show lboard after game
-            System.out.print("See leaderboard? Yes/No: ");
+            // System.out.print("See leaderboard? Yes/No: ");
             String response = scanner.nextLine().trim().toLowerCase();
             if (response.equals("yes") || response.equals("y")) {
                 System.out.println("Enter number of top players to display");
