@@ -45,6 +45,8 @@ Open the terminal and navigate to the game's directory. In the command line,</br
     * chmod +x ./play_LocalMM.sh</br>
 1. Run: </br>
     * ./play_LocalMM.sh</br>
+    * To display leaderboard: ./play_LocalMM.sh --leaderboard 5</br>
+      * (Default number to display is 3; example uses 5)
 2. View data:
     * In the command line, change directory
         * cd src/data
@@ -56,6 +58,10 @@ Open the terminal and navigate to the game's directory. In the command line,</br
         * SELECT * FROM game_data;
     * Exit the sql shell
         * .exit
+
+### To run and show leaderboard
+
+
 
 ### To build and run in the Docker container:
 1. Start the Desktop Docker
