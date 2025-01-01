@@ -144,19 +144,20 @@ public class SQLiteGameDataDAO implements GameDataDAO {
 
                     if (gameResult.next()) {
                         String secretCode = gameResult.getString("secret_code");
-                        
+                        int roundsToSolve = gameResult.getInt("rounds_to_solve");
+                        boolean solved = gameResult.getBoolean("solved");
+                        String formattedDate = gameResult.getString("timestamp");
+
+                        // Create the Game obj
+                        Game game = new Game(players, secretCode, this);
+                        game.setGameID(gameID);
+                        game.setRoundsToSolve(roundsToSolve);
+                        game.setSolved(solved);
+                        game.setFormattedDate(formattedDate);
+
+                        // Add to leaderboard
+                        leaderboard.add(game);
                     }
-                }
-                    Game game = new Game(
-                        null, // Players not fetched here; may extend if needed
-                        rs.getString("secret_code"),
-                        null); // Replace with GameDataDAO instance if needed
-                    game.setGameID(rs.getInt("game_id"));
-                    game.setPlayerName(rs.getString("player_name"));
-                    game.setRoundsToSolve(rs.getInt("rounds_to_solve"));
-                    game.setSolved(rs.getBoolean("solved"));
-                    game.setFormattedDate(rs.getString("timestamp"));
-                    leaderboard.add(game);
                 }
             }
         } catch (SQLException e) {

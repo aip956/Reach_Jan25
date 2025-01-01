@@ -104,7 +104,12 @@ public class MyMastermind {
 
             System.out.println("Leaderboard (Top " + topN + " Players):");
             for (Game game : leaderboard) {
-                System.out.println("Player: " + game.getPlayerName() + 
+                // Retrieve and print player names
+                String playerNames = game.getPlayers().stream()
+                    .map(player -> player.getPlayerName()) // Get player names
+                    .collect(Collectors.joining(", ")); // Combine names into a single string
+
+                System.out.println("Player: " + playerNames + 
                 ", Rounds: " + game.getRoundsToSolve() +
                 ", Solved: " + game.isSolved() +
                 ", Timestamp: " + game.getFormattedDate());
