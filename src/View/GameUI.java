@@ -1,4 +1,4 @@
-// GameUI.java
+// View.GameUI.java
 
 package View;
 import java.util.Scanner;

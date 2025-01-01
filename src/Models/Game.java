@@ -11,6 +11,7 @@ import java.util.List;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
 import DAO.GameDataDAO;
 
 
@@ -35,7 +36,7 @@ public class Game {
     public static final int MAX_ATTEMPTS = 5;
 
     private int gameID; 
-    private String playerName;
+    // private String playerName;
     private int roundsToSolve;
     private String formattedDate;
 
@@ -70,13 +71,13 @@ public class Game {
         // logger.debug("48GameIDD: {}", gameID);
     }
 
-    public String getPlayerName() {
-        return playerName;
-    }
-    public void setPlayerName(String playerName) {
-        this.playerName = playerName;
-        // logger.debug("57playerName: {}", playerName);
-    }
+    // public String getPlayerName() {
+    //     return playerName;
+    // }
+    // public void setPlayerName(String playerName) {
+    //     this.playerName = playerName;
+    //     // logger.debug("57playerName: {}", playerName);
+    // }
 
     public List<Guesser> getPlayers() {
         return players;
@@ -217,19 +218,27 @@ public class Game {
 
     private void finalizeGameData() {
         // Build summary of all players
-        StringBuilder playerSummary = new StringBuilder();
-        for (Guesser player : players) {
-            playerSummary.append(player.getPlayerName()).append(", ");
-        }
+        String playerSummary = players.stream()
+            .map(Player::getPlayerName) // Get each player's name
+            .collect(Collectors.joining(", ")); // Combine names with a comma
 
-        // Remove trailing comma and space
-        if (playerSummary.length() > 2) {
-            playerSummary.setLength(playerSummary.length() - 2);
-        }
+        // for (Guesser player : players) {
+        //     playerSummary.append(player.getPlayerName()).append(", ");
+        // }
 
-        this.playerName = playerSummary.toString(); // combine names for game summary
-        this.roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
-        this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        // // Remove trailing comma and space
+        // if (playerSummary.length() > 2) {
+        //     playerSummary.setLength(playerSummary.length() - 2);
+        // }
+
+        // this.playerName = playerSummary.toString(); // combine names for game summary
+        
+        // Compute game-related details
+        int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
+        String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        // this.roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
+        // this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+
 
         try {
             // Save game data and get the generated game ID

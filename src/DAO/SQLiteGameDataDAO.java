@@ -1,4 +1,4 @@
-/* SQLiteGameDataDAO.java
+/* DAO.SQLiteGameDataDAO.java
 Data Access Object; Handles all database interactions related to GameData,
     abstracting away the specifics of data persistence.
 */
@@ -13,6 +13,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,7 +118,35 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             stmt.setInt(1, topN); // Set limit dynamically
 
             try (ResultSet rs = stmt.executeQuery()) {
+                // Temp map to group players by game ID
+                Map<Integer, List<Guesser>> playersByGame = new HashMap<>();
+
+                // Iterate through the result set
                 while (rs.next()) {
+                    int gameID = rs.getInt("game_id");
+                    String playerName = rs.getString("player_name");
+
+                    // Create a Guesser obj for the player
+                    Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
+                    // Group players by game ID
+                    playersByGame.computeIfAbsent(gameID, k -> new ArrayList<>()).add(player);
+                }
+
+                // Build Game objs for each game ID
+                for (Map.Entry<Integer, List<Guesser>> entry : playersByGame.entrySet()) {
+                    int gameID = entry.getKey();
+                    List<Guesser> players = entry.getValue();
+
+                    // Retrieve the game-specific data (one row per gameID)
+                    ResultSet gameResult = stmt.executeQuery(
+                        "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code FROM game_data WHERE game_id = " + gameID
+                    );
+
+                    if (gameResult.next()) {
+                        String secretCode = gameResult.getString("secret_code");
+                        
+                    }
+                }
                     Game game = new Game(
                         null, // Players not fetched here; may extend if needed
                         rs.getString("secret_code"),

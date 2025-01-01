@@ -1,4 +1,4 @@
-// GameDataDAO.java
+// DAO.GameDataDAO.java
 
 package DAO;
 import Models.Game;

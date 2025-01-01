@@ -1,4 +1,4 @@
-// DatabaseConnectionManager.java
+// DBConnectionManager.DatabaseConnectionManager.java
 
 package DBConnectionManager;
 import java.sql.DriverManager;
