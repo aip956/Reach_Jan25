@@ -6,9 +6,12 @@ import Models.Game;
 import View.GameUI;
 import DAO.GameDataDAO;
 import DAO.SQLiteGameDataDAO;
+import DBConnectionManager.DatabaseConnectionManager;
+
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,22 +87,23 @@ public class MyMastermind {
 
             // Prompt to show lboard after game
             if (displayLeaderboardFlag) {
-                displayLeaderboard(dbPath, topN);
+                displayLeaderboard(gameDataDAO, topN);
             } 
             
         } finally {
             System.out.println("Game finished.");
             scanner.close(); // Close the scanner
             System.out.println("Scanner closed");
+            DatabaseConnectionManager.closeConnection();
         }
     }
     
     // Display leaderboard
     // @param dbPath = path to SQLite db
     // @param topN = Number of top players to display
-    private static void displayLeaderboard(String dbPath, int topN) {
+    private static void displayLeaderboard(GameDataDAO gameDataDAO, int topN) {
         try {
-            GameDataDAO gameDataDAO = new SQLiteGameDataDAO(dbPath);
+            // GameDataDAO gameDataDAO = new SQLiteGameDataDAO(dbPath);
             List<Game> leaderboard = gameDataDAO.getLeaderboard(topN);
 
             System.out.println("Leaderboard (Top " + topN + " Players):");

@@ -4,35 +4,41 @@ package DBConnectionManager;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Connection;
+import java.sql.Driver;
 
 public class DatabaseConnectionManager {
     private static Connection connection;
+    private static final Object lock = new Object(); // Thread safety
 
-    public static Connection getConnection (String dbType, String dbPath) throws SQLException {
-        if (connection != null) {
-            try {
-                if (!connection.isClosed()) {
-                    return connection;
+    // Get or create a single connection
+    public static Connection getConnection (String dbPath) throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            synchronized (lock) { // Thread safety
+                if (connection == null || connection.isClosed()) {
+                    try {
+                        Class.forName("org.sqlite.JDBC");
+                        connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+
+                        // Enable WAL mode for better performance
+                        connection.createStatement().execute("PRAGMA journal_mode=WAL;");
+                    } catch (ClassNotFoundException e) {
+                        throw new SQLException("SQLite JDBC driver not found", e);
+                    }
                 }
-            } catch (SQLException e) {
-                System.err.println("Error checking conection status: " + e.getMessage());
-                connection = null;
             }
         }
-
-        // Establish new connection if existing one closed or null
-        switch (dbType) {
-            case "SQLite":
-                try {
-                    Class.forName("org.sqlite.JDBC");
-                    connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-                } catch (ClassNotFoundException e) {
-                    System.err.println("Could not initialize JDBC driver; driver not found");
-                    throw new SQLException("Driver not found", e);
-                }
-                break;             
-        }
         return connection;
+    }
+    // Close the connection
+    public static void closeConnection() {
+        if (connection != null) {
+            try {
+                connection.close();
+                connection = null; // Set to null for reinitialization
+            } catch (SQLException e) {
+                System.err.println("Error closing connection: " + e.getMessage());
+            }
+        }
     }
 }
 

@@ -14,6 +14,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.Map;
+
+import DBConnectionManager.DatabaseConnectionManager;
+
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +70,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             "guesses) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath)) {
+        try (Connection conn = DatabaseConnectionManager.getConnection(dbPath)) {
             conn.setAutoCommit(false); // Enable transaction for consistency
             int gameID;
         
@@ -81,6 +83,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                         throw new SQLException("Failed to generate new game ID");
                     }
                 }
+
                 // Insert rows for each player
                 try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
                     for (Guesser player : game.getPlayers()) {
@@ -96,10 +99,12 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 }
 
             conn.commit(); // Commit transaction
+
         } catch (SQLException e) {
+
             System.err.println("Error saving game data: " + e.getMessage());
             throw e;
-        }
+        } 
     }
 
     @Override
@@ -111,13 +116,13 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         "ORDER BY rounds_to_solve ASC, timestamp ASC " + // Fewest rounds, oldest games first
         "LIMIT ?";
         
-    List<Game> leaderboard = new ArrayList<>();
+        List<Game> leaderboard = new ArrayList<>();
 
-    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
-        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
-            stmt.setInt(1, topN); // Set limit dynamically
+        try (Connection conn = DatabaseConnectionManager.getConnection(dbPath);
+            PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
+                stmt.setInt(1, topN); // Set limit dynamically
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = stmt.executeQuery()) {  
                 // Temp map to group players by game ID
                 Map<Integer, List<Guesser>> playersByGame = new HashMap<>();
 
@@ -137,33 +142,37 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                     int gameID = entry.getKey();
                     List<Guesser> players = entry.getValue();
 
-                    // Retrieve the game-specific data (one row per gameID)
-                    ResultSet gameResult = stmt.executeQuery(
-                        "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code FROM game_data WHERE game_id = " + gameID
-                    );
+                    try (PreparedStatement gameStmt = conn.prepareStatement(
+                        "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code" +
+                        "FROM game_data WHERE game_id = ?")) {
+                            gameStmt.setInt(1, gameID);
 
-                    if (gameResult.next()) {
-                        String secretCode = gameResult.getString("secret_code");
-                        int roundsToSolve = gameResult.getInt("rounds_to_solve");
-                        boolean solved = gameResult.getBoolean("solved");
-                        String formattedDate = gameResult.getString("timestamp");
-
-                        // Create the Game obj
-                        Game game = new Game(players, secretCode, this);
-                        game.setGameID(gameID);
-                        game.setRoundsToSolve(roundsToSolve);
-                        game.setSolved(solved);
-                        game.setFormattedDate(formattedDate);
-
-                        // Add to leaderboard
-                        leaderboard.add(game);
+                            try (ResultSet gameResult = gameStmt.executeQuery()) {
+                                if (gameResult.next()) {
+                                    String secretCode = gameResult.getString("secret_code");
+                                    int roundsToSolve = gameResult.getInt("rounds_to_solve");
+                                    boolean solved = gameResult.getBoolean("solved");
+                                    String formattedDate = gameResult.getString("timestamp");
+            
+                                    // Create the Game obj
+                                    Game game = new Game(players, secretCode, this);
+                                    game.setGameID(gameID);
+                                    game.setRoundsToSolve(roundsToSolve);
+                                    game.setSolved(solved);
+                                    game.setFormattedDate(formattedDate);
+            
+                                    // Add to leaderboard
+                                    leaderboard.add(game);
+                                }
+                            }
+                        }
                     }
                 }
+            } catch (SQLException e) {
+                System.err.println("Error fetching leaderboard: " + e.getMessage());
+                throw e;
             }
-        } catch (SQLException e) {
-            System.err.println("Error fetching leaderboard: " + e.getMessage());
-            throw e;
-        }
+            
         return leaderboard;
     }
 }
