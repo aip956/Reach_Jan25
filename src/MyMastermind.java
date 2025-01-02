@@ -14,6 +14,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.stream.Collectors;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
@@ -25,6 +26,10 @@ public class MyMastermind {
         String dbPath = System.getenv("DB_FILE");
         dbPath = (dbPath == null || dbPath.isEmpty()) ? "src/data/MM_Reach.db" : dbPath;
         System.out.println("Attempting to connect to the database...");
+
+        // Determine the db type
+        String dbType = System.getenv("DB_TYPE");
+        dbType = (dbType == null || dbPath.isEmpty()) ? "sqlite" : dbType;
 
 
         // Dedicated main scanner
