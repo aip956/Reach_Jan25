@@ -37,7 +37,8 @@ public class Game {
 
     private int gameID; 
     // private String playerName;
-    private int roundsToSolve;
+    // private int roundsToSolve;
+    private Map<String, Integer> playerAttempts = new HashMap<>();
     private String formattedDate;
 
 
@@ -53,14 +54,6 @@ public class Game {
         this.solved = false;
     }
     
-    // // Constructor for leaderboard 
-    // public Game(String playerName, String secretCode, int roundsToSolve, boolean solved, String formattedDate) {
-    //     this.playerName = playerName;
-    //     this.secretCode = secretCode;
-    //     this.roundsToSolve = roundsToSolve;
-    //     this.solved = solved;
-    //     this.formattedDate = formattedDate;
-    // }
 
     // Getters, setters; moved
     public int getGameID() {
@@ -83,13 +76,21 @@ public class Game {
         return players;
     }
 
-    public int getRoundsToSolve() {
-        return roundsToSolve;
+    public int getPlayerAttempts() {
+        return playerAttempts;
     }
-    public void setRoundsToSolve(int roundsToSolve) {
-        this.roundsToSolve = roundsToSolve;
+    public void setPlayerAttempts(int playerAttempts) {
+        this.playerAttempts = playerAttempts;
         // logger.debug("66roundsToSolve: {}", roundsToSolve);
     }
+
+    // public int getRoundsToSolve() {
+    //     return roundsToSolve;
+    // }
+    // public void setRoundsToSolve(int roundsToSolve) {
+    //     this.roundsToSolve = roundsToSolve;
+    //     // logger.debug("66roundsToSolve: {}", roundsToSolve);
+    // }
 
     public boolean isSolved() {
         return solved;
@@ -184,22 +185,37 @@ public class Game {
         // Use gameUI for UI interactions
         gameUI.displayMessage("Will you find the secret code?\nGood luck!");
 
-        while (hasAttemptsLeft()) {
+        // Initialize all players' attempts
+        for (Guesser player : players) {
+            playerAttempts.putIfAbsent(player.getPlayerName(), Game.MAX_ATTEMPTS);
+        }
+
+        while (players.stream().anyMatch(player -> playerAttempts.get(player.getPlayerName()) > 0)) {
             Guesser currentPlayer = players.get(currentPlayerIndex);
-            gameUI.displayMessage("Current player: " + currentPlayer.getPlayerName());
+            String playerName = currentPlayer.getPlayerName();
+            gameUI.displayMessage("Current player: " + playerName);
+            gameUI.displayMessage("Attempts left: " + playerAttempts.get(playerName));
 
             String guess = currentPlayer.makeGuess();
-            gameUI.displayMessage("Player " + currentPlayer.getPlayerName() + "'s guess: " + guess);
+            gameUI.displayMessage("Player " + playerName + "'s guess: " + guess);
 
             if (isValidGuess(guess)) {
                 evaluateGuess(guess);
+
                 String feedback = provideFeedback(guess);
                 gameUI.displayMessage(feedback);
 
+                // Check if the guess is correct
                 if (guess.equals(secretCode)) {
-                    gameUI.displayMessage("Congrats " + currentPlayer.getPlayerName() + "! You did it");
+                    gameUI.displayMessage("Congrats " + playerName + "! You did it");
                     solved = true;
                     break;
+                } else {
+                    // Decrement attampts for the current player
+                    playerAttempts.put(playerName, playerAttempts.get(playerName) - 1);
+                    if (playerAttempts.get(playerName) == 0) {
+                        gameUI.displayMessage("Sorry, " + playerName + ", you're out of attempts.");
+                    }
                 }
             } else {
                 gameUI.displayMessage("Invalid input! Try again.");
@@ -212,9 +228,42 @@ public class Game {
         if (!solved) {
             gameUI.displayMessage("Sorry, the code was: " + secretCode);
         }
-            
-        finalizeGameData();
     }
+
+
+
+
+    //     while (hasAttemptsLeft()) {
+    //         Guesser currentPlayer = players.get(currentPlayerIndex);
+    //         String guess = currentPlayer.makeGuess();
+
+    //         String guess = currentPlayer.makeGuess();
+    //         gameUI.displayMessage("Player " + currentPlayer.getPlayerName() + "'s guess: " + guess);
+
+    //         if (isValidGuess(guess)) {
+    //             evaluateGuess(guess);
+    //             String feedback = provideFeedback(guess);
+    //             gameUI.displayMessage(feedback);
+
+    //             if (guess.equals(secretCode)) {
+    //                 gameUI.displayMessage("Congrats " + currentPlayer.getPlayerName() + "! You did it");
+    //                 solved = true;
+    //                 break;
+    //             }
+    //         } else {
+    //             gameUI.displayMessage("Invalid input! Try again.");
+    //         }
+
+    //         // Move to next player
+    //         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+    //     }
+
+    //     if (!solved) {
+    //         gameUI.displayMessage("Sorry, the code was: " + secretCode);
+    //     }
+            
+    //     finalizeGameData();
+    // }
 
     private void finalizeGameData() {
         // Build summary of all players
@@ -234,7 +283,8 @@ public class Game {
         // this.playerName = playerSummary.toString(); // combine names for game summary
         
         // Compute game-related details
-        int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
+        // int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
+        int playerAttempts = MAX_ATTEMPTS - attemptsLeft;
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         this.formattedDate = formattedDate;
 
