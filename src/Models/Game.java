@@ -228,6 +228,7 @@ public class Game {
         if (!solved) {
             gameUI.displayMessage("Sorry, the code was: " + secretCode);
         }
+        finalizeGameData();
     }
 
 
@@ -285,12 +286,14 @@ public class Game {
         // Compute game-related details
         // int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
         int playerAttempts = MAX_ATTEMPTS - attemptsLeft;
+        System.out.println("game.java line 288");
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         this.formattedDate = formattedDate;
 
-
+        System.out.println("Finalizing game data...");
         try {
             // Save game data and get the generated game ID
+
             gameDataDAO.saveGameData(this);
 
             // Save player data for each player
