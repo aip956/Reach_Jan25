@@ -39,9 +39,9 @@ public class LeaderboardMngr {
 
     private void displayLeaderboard(int topN) {
         try {
+            System.out.println("Leaderboard (Top " + topN + " Players):");
             List<Game> leaderboard = gameDataDAO.getLeaderboard(topN);
 
-            System.out.println("Leaderboard (Top " + topN + " Players):");
                 for (Game game : leaderboard) {
                 for (String playerName : game.getPlayerAttempts().keySet()) {
                     int attemptsMade = game.getPlayerAttempts().get(playerName);

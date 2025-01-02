@@ -210,12 +210,12 @@ public class Game {
             for (Guesser player : players) {
                 String playerName = player.getPlayerName();
                 int attemptsMade = playerAttempts.get(playerName);
-                System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
+                // System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
             }
 
             // Save game data
             gameDataDAO.saveGameData(this);
-            gameUI.displayMessage("Game data saved");
+            // gameUI.displayMessage("Game data saved");
         } catch (SQLException e) {
             gameUI.displayMessage("Error occured saving game data: " + e.getMessage());
         } finally {

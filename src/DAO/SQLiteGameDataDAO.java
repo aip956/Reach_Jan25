@@ -91,7 +91,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 for (Guesser player : game.getPlayers()) {
                     String playerName = player.getPlayerName();
                     int attemptsMade = game.getPlayerAttempts().get(playerName);
-                    System.out.println("Inserting Player: " + playerName + ", Attempts: " + attemptsMade);
+                    // System.out.println("Inserting Player: " + playerName + ", Attempts: " + attemptsMade);
 
                     gameStmt.setInt(1, gameID);
                     gameStmt.setString(2, playerName);
@@ -103,8 +103,8 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                     gameStmt.executeUpdate();
                 }
             }
-            System.out.println("Saving game data for game ID: " + gameID);
-            System.out.println("Players: " + game.getPlayers().size());
+            // System.out.println("Saving game data for game ID: " + gameID);
+            // System.out.println("Players: " + game.getPlayers().size());
 
             conn.commit(); // Commit transaction 
         }
@@ -130,7 +130,6 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             // Map<Integer, Game> gamesById = new HashMap<>();
 
             // Iterate through the result set
-            System.out.println("SQLiteDAO 133");
             while (rs.next()) {
                 int gameID = rs.getInt("game_id");
                 String playerName = rs.getString("player_name");
@@ -140,7 +139,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 String secretCode = rs.getString("secret_code");
                 String guesses = rs.getString("guesses");
 
-                System.out.println("Fetched Player: " + playerName + ", Attempts: " + playerAttempts);
+                System.out.println("Leaderboard Player: " + playerName + ", Attempts: " + playerAttempts);
                 // Create or retrieve the Game obj for this game_id
                 Guesser player = new Guesser(playerName, null);
                 player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
