@@ -13,8 +13,6 @@ public class Guesser extends Player {
         super(name);// Call the Player constructor
         this.scanner = scanner; // Using shared Scanner
         this.guesses = new ArrayList<>();
-        // System.out.print("Please enter your name: ");
-        // this.playerName = scanner.nextLine();
     }
 
     @Override

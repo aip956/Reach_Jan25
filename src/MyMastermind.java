@@ -1,5 +1,6 @@
 // MyMastermind.java
 
+import Controller.LeaderboardMngr;
 import Models.Guesser;
 import Models.SecretKeeper;
 import Models.Game;
@@ -38,21 +39,9 @@ public class MyMastermind {
             System.err.println("Database connection failed: " + e.getMessage());
             return;
         }
-
-
-        // Check CLI args for leaderboard flag
-        boolean displayLeaderboardFlag = false;
-        int topN = 3; // Default display 3 players
-        if (args.length > 0 && (args[0].equals("--leaderboard") || args[0].equals("--l"))) {
-            displayLeaderboardFlag = true;
-            if (args.length > 1) {
-                try {
-                    topN = Integer.parseInt(args[1]);
-                } catch (NumberFormatException e) {
-                    System.err.println("Invalid number for leaderboard; using default 3.");
-                }
-            }
-        }
+    
+        // Intitialize LeaderboardMngr
+        LeaderboardMngr leaderboardMngr = new LeaderboardMngr(gameDataDAO);
 
         try {
             System.out.print("Enter number of players: ");
@@ -85,51 +74,15 @@ public class MyMastermind {
             Game game = new Game(players, secretCode, gameDataDAO);
             game.startGame();
 
-            // Prompt to show lboard after game
-            if (displayLeaderboardFlag) {
-                displayLeaderboard(gameDataDAO, topN);
-            } 
+            // Handle leaderboard logic
+            leaderboardMngr.handleLeaderboard(args);
+
             
         } finally {
             System.out.println("Game finished.");
             scanner.close(); // Close the scanner
             System.out.println("Scanner closed");
             DatabaseConnectionManager.closeConnection();
-        }
-    }
-    
-    // Display leaderboard
-    // @param dbPath = path to SQLite db
-    // @param topN = Number of top players to display
-    private static void displayLeaderboard(GameDataDAO gameDataDAO, int topN) {
-        try {
-            // GameDataDAO gameDataDAO = new SQLiteGameDataDAO(dbPath);
-            List<Game> leaderboard = gameDataDAO.getLeaderboard(topN);
-
-            System.out.println("Leaderboard (Top " + topN + " Players):");
-            // for (Game game : leaderboard) {
-            //     // Retrieve and print player names
-            //     String playerNames = game.getPlayers().stream()
-            //         .map(player -> player.getPlayerName()) // Get player names
-            //         .collect(Collectors.joining(", ")); // Combine names into a single string
-            for (Game game : leaderboard) {
-                for (String playerName : game.getPlayerAttempts().keySet()) {
-                    int attempts = game.getPlayerAttempts().get(playerName);
-                    System.out.println("Player: " + playerName +
-                    ", Attempts: " + attempts +
-                    ", Solved: " + game.isSolved() +
-                    ", Timestamp: " + game.getFormattedDate());
-                }
-            }
-
-
-            //     System.out.println("Player: " + playerNames + 
-            //     ", Rounds: " + game.getRoundsToSolve() +
-            //     ", Solved: " + game.isSolved() +
-            //     ", Timestamp: " + game.getFormattedDate());
-            // }
-        } catch (SQLException e) {
-            System.err.println("Error fetching leaderboard: " + e.getMessage());
         }
     }
 }

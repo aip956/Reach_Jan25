@@ -16,15 +16,9 @@ import DAO.GameDataDAO;
 
 
 public class Game {
-    // Fields
-    // To make multiplayer, replace single Guesser with List<Guesser> to 
-    // store multiplayers
-    // add logic to track the current player taking a turn; int currentPlayerIndex
-    // modify method startGame to loop through players
+
     private List<Guesser> players; // List of players if multiplayer
     private int currentPlayerIndex; // Track the player
-    // comment out the Guesser guesser
-    // private Guesser guesser;
     private GameUI gameUI;
     private String secretCode;
     private List<String> guesses;
@@ -36,8 +30,6 @@ public class Game {
     public static final int MAX_ATTEMPTS = 5;
 
     private int gameID; 
-    // private String playerName;
-    // private int roundsToSolve;
     private Map<String, Integer> playerAttempts = new HashMap<>();
     private String formattedDate;
 
@@ -64,14 +56,6 @@ public class Game {
         // logger.debug("48GameIDD: {}", gameID);
     }
 
-    // public String getPlayerName() {
-    //     return playerName;
-    // }
-    // public void setPlayerName(String playerName) {
-    //     this.playerName = playerName;
-    //     // logger.debug("57playerName: {}", playerName);
-    // }
-
     public List<Guesser> getPlayers() {
         return players;
     }
@@ -81,23 +65,14 @@ public class Game {
     }
     public void setPlayerAttempts(Map<String, Integer> playerAttempts) {
         this.playerAttempts = playerAttempts;
-        // logger.debug("66roundsToSolve: {}", roundsToSolve);
     }
 
-    // public int getRoundsToSolve() {
-    //     return roundsToSolve;
-    // }
-    // public void setRoundsToSolve(int roundsToSolve) {
-    //     this.roundsToSolve = roundsToSolve;
-    //     // logger.debug("66roundsToSolve: {}", roundsToSolve);
-    // }
 
     public boolean isSolved() {
         return solved;
     }
     public void setSolved(boolean solved) {
         this.solved = solved;
-        // logger.debug("75solved: {}", solved);
     }
 
     public String getFormattedDate() {
@@ -107,18 +82,15 @@ public class Game {
         this.formattedDate = formattedDate;
     }
 
-    // Do I need this getter?
     public String getSecretCode() {
         return secretCode;
     }
-
 
     public List<String> getGuesses() {
         return guesses;
     }
     public void setGuesses(List<String> guesses) {
         this.guesses = guesses;
-        // logger.debug("102guesses: {}", guesses);
     }
 
     public static int getMaxAttempts() {
@@ -187,21 +159,25 @@ public class Game {
 
         // Initialize all players' attempts
         for (Guesser player : players) {
-            playerAttempts.putIfAbsent(player.getPlayerName(), Game.MAX_ATTEMPTS);
+            playerAttempts.put(player.getPlayerName(), 0);
         }
 
-        while (players.stream().anyMatch(player -> playerAttempts.get(player.getPlayerName()) > 0)) {
+
+        while (!solved && players.stream().anyMatch(player -> playerAttempts.get(player.getPlayerName()) < MAX_ATTEMPTS)) {
             Guesser currentPlayer = players.get(currentPlayerIndex);
             String playerName = currentPlayer.getPlayerName();
-            gameUI.displayMessage("Current player: " + playerName);
-            gameUI.displayMessage("Attempts left: " + playerAttempts.get(playerName));
 
+            // Display current player's status
+            gameUI.displayMessage("Current player: " + playerName);
+            gameUI.displayMessage("Attempts left: " + (MAX_ATTEMPTS - playerAttempts.get(playerName)));
+
+            // Make a guess
             String guess = currentPlayer.makeGuess();
             gameUI.displayMessage("Player " + playerName + "'s guess: " + guess);
 
             if (isValidGuess(guess)) {
                 evaluateGuess(guess);
-
+                playerAttempts.put(playerName, playerAttempts.get(playerName) + 1);
                 String feedback = provideFeedback(guess);
                 gameUI.displayMessage(feedback);
 
@@ -210,12 +186,6 @@ public class Game {
                     gameUI.displayMessage("Congrats " + playerName + "! You did it");
                     solved = true;
                     break;
-                } else {
-                    // Decrement attampts for the current player
-                    playerAttempts.put(playerName, playerAttempts.get(playerName) - 1);
-                    if (playerAttempts.get(playerName) == 0) {
-                        gameUI.displayMessage("Sorry, " + playerName + ", you're out of attempts.");
-                    }
                 }
             } else {
                 gameUI.displayMessage("Invalid input! Try again.");
@@ -232,74 +202,19 @@ public class Game {
     }
 
 
-
-
-    //     while (hasAttemptsLeft()) {
-    //         Guesser currentPlayer = players.get(currentPlayerIndex);
-    //         String guess = currentPlayer.makeGuess();
-
-    //         String guess = currentPlayer.makeGuess();
-    //         gameUI.displayMessage("Player " + currentPlayer.getPlayerName() + "'s guess: " + guess);
-
-    //         if (isValidGuess(guess)) {
-    //             evaluateGuess(guess);
-    //             String feedback = provideFeedback(guess);
-    //             gameUI.displayMessage(feedback);
-
-    //             if (guess.equals(secretCode)) {
-    //                 gameUI.displayMessage("Congrats " + currentPlayer.getPlayerName() + "! You did it");
-    //                 solved = true;
-    //                 break;
-    //             }
-    //         } else {
-    //             gameUI.displayMessage("Invalid input! Try again.");
-    //         }
-
-    //         // Move to next player
-    //         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-    //     }
-
-    //     if (!solved) {
-    //         gameUI.displayMessage("Sorry, the code was: " + secretCode);
-    //     }
-            
-    //     finalizeGameData();
-    // }
-
     private void finalizeGameData() {
-        // Build summary of all players
-        String playerSummary = players.stream()
-            .map(Player::getPlayerName) // Get each player's name
-            .collect(Collectors.joining(", ")); // Combine names with a comma
-
-        // for (Guesser player : players) {
-        //     playerSummary.append(player.getPlayerName()).append(", ");
-        // }
-
-        // // Remove trailing comma and space
-        // if (playerSummary.length() > 2) {
-        //     playerSummary.setLength(playerSummary.length() - 2);
-        // }
-
-        // this.playerName = playerSummary.toString(); // combine names for game summary
-        
-        // Compute game-related details
-        // int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
-        int playerAttempts = MAX_ATTEMPTS - attemptsLeft;
-        System.out.println("game.java line 288");
-        String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        this.formattedDate = formattedDate;
-
+        this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         System.out.println("Finalizing game data...");
+
         try {
-            // Save game data and get the generated game ID
+            for (Guesser player : players) {
+                String playerName = player.getPlayerName();
+                int attemptsMade = playerAttempts.get(playerName);
+                System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
+            }
 
+            // Save game data
             gameDataDAO.saveGameData(this);
-
-            // Save player data for each player
-            // for (Guesser player : players) {
-            //     gameDataDAO.savePlayerData(gameID, player.getPlayerName(), guesses);
-            // }
             gameUI.displayMessage("Game data saved");
         } catch (SQLException e) {
             gameUI.displayMessage("Error occured saving game data: " + e.getMessage());

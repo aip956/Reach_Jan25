@@ -90,12 +90,12 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
                 for (Guesser player : game.getPlayers()) {
                     String playerName = player.getPlayerName();
-                    int attempts = game.getPlayerAttempts().getOrDefault(playerName,0);
-                    System.out.println("Inserting Player: " + playerName + ", Attempts: " + attempts);
-                    
+                    int attemptsMade = game.getPlayerAttempts().get(playerName);
+                    System.out.println("Inserting Player: " + playerName + ", Attempts: " + attemptsMade);
+
                     gameStmt.setInt(1, gameID);
                     gameStmt.setString(2, playerName);
-                    gameStmt.setObject(3, attempts); 
+                    gameStmt.setObject(3, attemptsMade); 
                     gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
                     gameStmt.setString(5, game.getFormattedDate());
                     gameStmt.setString(6, game.getSecretCode());
@@ -130,6 +130,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             // Map<Integer, Game> gamesById = new HashMap<>();
 
             // Iterate through the result set
+            System.out.println("SQLiteDAO 133");
             while (rs.next()) {
                 int gameID = rs.getInt("game_id");
                 String playerName = rs.getString("player_name");
@@ -139,6 +140,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 String secretCode = rs.getString("secret_code");
                 String guesses = rs.getString("guesses");
 
+                System.out.println("Fetched Player: " + playerName + ", Attempts: " + playerAttempts);
                 // Create or retrieve the Game obj for this game_id
                 Guesser player = new Guesser(playerName, null);
                 player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
@@ -149,26 +151,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 game.setFormattedDate(timestamp);
                 game.getPlayers().add(player);
 
-                // Game game = gamesById.computeIfAbsent(gameID, id -> {
-                //     Game newGame = new Game(new ArrayList<>(), secretCode, this);
-                //     newGame.setGameID(gameID);
-                //     newGame.setFormattedDate(timestamp);
-                //     return newGame;
-            //     });
-
-            //     // Create a Guesser obj for the player
-            //     // Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
-            //     if (solved) {
-            //         player.getGuesses().addAll(Arrays.asList(guesses.split(", "))); // Parse guesses
-            //     }
-            //     game.getPlayers().add(player); // Add player to the Game obj
-
-            //     // Update roundsToSolve and solved for the player
-            //     game.setRoundsToSolve(roundsToSolve);
-            //     game.setSolved(solved);
-            // }
-
-            // Add all games to the leaderboard
+                // Add game to leaderboard
                 leaderboard.add(game);
             }
         }
