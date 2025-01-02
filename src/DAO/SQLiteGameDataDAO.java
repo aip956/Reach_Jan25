@@ -37,7 +37,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             "CREATE TABLE IF NOT EXISTS  game_data (" +
                 "game_id INTEGER NOT NULL, " +
                 "player_name TEXT NOT NULL, " +
-                "rounds_to_solve INTEGER, " + // Null if not solved for a player
+                "player_attemts INTEGER NOT NUll, " + 
                 "solved BOOLEAN NOT NULL, " +
                 "timestamp TEXT NOT NULL, " +
                 "secret_code TEXT NOT NULL, " +
@@ -62,7 +62,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         String gameSql = "INSERT INTO game_data (" +
             "game_id, " +
             "player_name, " +
-            "rounds_to_solve, " +
+            "player_attempts, " +
             "solved, " +
             "timestamp, " +
             "secret_code, " + 
@@ -77,27 +77,30 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             // Create new game_id
             try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL (MAX(game_id), 0) + 1 AS new_game_id FROM game_data");
                 ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        gameID = rs.getInt("new_game_id");
-                    } else {
-                        throw new SQLException("Failed to generate new game ID");
-                    }
+                if (rs.next()) {
+                    gameID = rs.getInt("new_game_id");
+                } else {
+                    throw new SQLException("Failed to generate new game ID");
                 }
+            }
 
-                // Insert rows for each player
-                try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
-                    for (Guesser player : game.getPlayers()) {
-                        gameStmt.setInt(1, gameID);
-                        gameStmt.setString(2, player.getPlayerName());
-                        gameStmt.setObject(3, player.hasSolved(game.getSecretCode()) ? player.getGuesses().size() : null); // null if not solved
-                        gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
-                        gameStmt.setString(5, game.getFormattedDate());
-                        gameStmt.setString(6, game.getSecretCode());
-                        gameStmt.setString(7, String.join(", ", player.getGuesses()));
-                        gameStmt.executeUpdate();
-                    }
+            // Insert rows for each player
+            try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
+                for (Guesser player : game.getPlayers()) {
+                    String playerName = player.getPlayerName();
+                    int attempts = game.getPlayerAttempts().get(playerName);
+
+                    gameStmt.setInt(1, gameID);
+                    gameStmt.setString(2, playerName);
+                    gameStmt.setObject(3, attempts); 
+                    gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
+                    gameStmt.setString(5, game.getFormattedDate());
+                    gameStmt.setString(6, game.getSecretCode());
+                    gameStmt.setString(7, String.join(", ", player.getGuesses()));
+                    gameStmt.executeUpdate();
                 }
-                conn.commit(); // Commit transaction 
+            }
+            conn.commit(); // Commit transaction 
         }
     }
 
@@ -107,7 +110,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         "SELECT game_id, player_name, rounds_to_solve, solved, timestamp, secret_code, guesses " +
         "FROM game_data " +
         "WHERE solved = 1 " + // Solved games
-        "ORDER BY rounds_to_solve ASC, timestamp ASC " + // Fewest rounds, oldest games first
+        "ORDER BY player_attempts ASC, timestamp ASC " + // Fewest rounds, oldest games first
         "LIMIT ?";
         
         List<Game> leaderboard = new ArrayList<>();
@@ -118,19 +121,22 @@ public class SQLiteGameDataDAO implements GameDataDAO {
 
         try (ResultSet rs = stmt.executeQuery()) {  
             // Temp map to group players by game ID
-            Map<Integer, Game> gamesById = new HashMap<>();
+            // Map<Integer, Game> gamesById = new HashMap<>();
 
             // Iterate through the result set
             while (rs.next()) {
                 int gameID = rs.getInt("game_id");
                 String playerName = rs.getString("player_name");
-                int roundsToSolve = rs.getInt("rounds_to_solve");
+                int playerAttempts = rs.getInt("player_attempts");
                 boolean solved = rs.getBoolean("solved");
                 String timestamp = rs.getString("timestamp");
                 String secretCode = rs.getString("secret_code");
                 String guesses = rs.getString("guesses");
 
                 // Create or retrieve the Game obj for this game_id
+                Guesser player = new Guesser(playerName, null);
+                player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
+
                 Game game = gamesById.computeIfAbsent(gameID, id -> {
                     Game newGame = new Game(new ArrayList<>(), secretCode, this);
                     newGame.setGameID(gameID);
@@ -139,7 +145,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 });
 
                 // Create a Guesser obj for the player
-                Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
+                // Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
                 if (solved) {
                     player.getGuesses().addAll(Arrays.asList(guesses.split(", "))); // Parse guesses
                 }
