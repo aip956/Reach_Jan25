@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 
 public class SQLiteGameDataDAO implements GameDataDAO {
@@ -112,56 +113,46 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         List<Game> leaderboard = new ArrayList<>();
 
         try (Connection conn = DatabaseConnectionManager.getConnection(dbPath);
-        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
+            PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
             stmt.setInt(1, topN); // Set limit dynamically
 
         try (ResultSet rs = stmt.executeQuery()) {  
             // Temp map to group players by game ID
-            Map<Integer, List<Guesser>> playersByGame = new HashMap<>();
+            Map<Integer, Game> gamesById = new HashMap<>();
 
             // Iterate through the result set
             while (rs.next()) {
                 int gameID = rs.getInt("game_id");
                 String playerName = rs.getString("player_name");
+                int roundsToSolve = rs.getInt("rounds_to_solve");
+                boolean solved = rs.getBoolean("solved");
+                String timestamp = rs.getString("timestamp");
+                String secretCode = rs.getString("secret_code");
+                String guesses = rs.getString("guesses");
+
+                // Create or retrieve the Game obj for this game_id
+                Game game = gamesById.computeIfAbsent(gameID, id -> {
+                    Game newGame = new Game(new ArrayList<>(), secretCode, this);
+                    newGame.setGameID(gameID);
+                    newGame.setFormattedDate(timestamp);
+                    return newGame;
+                });
 
                 // Create a Guesser obj for the player
                 Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
-                // Group players by game ID
-                playersByGame.computeIfAbsent(gameID, k -> new ArrayList<>()).add(player);
-            }
-
-            // Build Game objs for each game ID
-            for (Map.Entry<Integer, List<Guesser>> entry : playersByGame.entrySet()) {
-                int gameID = entry.getKey();
-                List<Guesser> players = entry.getValue();
-
-                try (PreparedStatement gameStmt = conn.prepareStatement(
-                    "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code " +
-                    "FROM game_data WHERE game_id = ?")) {
-                    
-                    gameStmt.setInt(1, gameID);
-
-                    try (ResultSet gameResult = gameStmt.executeQuery()) {
-                        if (gameResult.next()) {
-                            String secretCode = gameResult.getString("secret_code");
-                            int roundsToSolve = gameResult.getInt("rounds_to_solve");
-                            boolean solved = gameResult.getBoolean("solved");
-                            String formattedDate = gameResult.getString("timestamp");
-    
-                            // Create the Game obj
-                            Game game = new Game(players, secretCode, this);
-                            game.setGameID(gameID);
-                            game.setRoundsToSolve(roundsToSolve);
-                            game.setSolved(solved);
-                            game.setFormattedDate(formattedDate);
-    
-                            // Add to leaderboard
-                            leaderboard.add(game);
-                        }
-                    }
+                if (solved) {
+                    player.getGuesses().addAll(Arrays.asList(guesses.split(", "))); // Parse guesses
                 }
+                game.getPlayers().add(player); // Add player to the Game obj
+
+                // Update roundsToSolve and solved for the player
+                game.setRoundsToSolve(roundsToSolve);
+                game.setSolved(solved);
             }
-        }   
+
+            // Add all games to the leaderboard
+            leaderboard.addAll(gamesById.values());
+        }
     }
     return leaderboard;
     }
