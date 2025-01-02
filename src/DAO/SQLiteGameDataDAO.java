@@ -33,11 +33,13 @@ public class SQLiteGameDataDAO implements GameDataDAO {
 
 
     private void ensureTableExists() throws SQLException {
+        System.out.println("Database path: " + dbPath);
+
         String createGameTableSQL = 
             "CREATE TABLE IF NOT EXISTS  game_data (" +
                 "game_id INTEGER NOT NULL, " +
                 "player_name TEXT NOT NULL, " +
-                "player_attemts INTEGER NOT NUll, " + 
+                "player_attempts INTEGER NOT NUll, " + 
                 "solved BOOLEAN NOT NULL, " +
                 "timestamp TEXT NOT NULL, " +
                 "secret_code TEXT NOT NULL, " +
@@ -88,8 +90,9 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
                 for (Guesser player : game.getPlayers()) {
                     String playerName = player.getPlayerName();
-                    int attempts = game.getPlayerAttempts().get(playerName);
-
+                    int attempts = game.getPlayerAttempts().getOrDefault(playerName,0);
+                    System.out.println("Inserting Player: " + playerName + ", Attempts: " + attempts);
+                    
                     gameStmt.setInt(1, gameID);
                     gameStmt.setString(2, playerName);
                     gameStmt.setObject(3, attempts); 
@@ -100,6 +103,9 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                     gameStmt.executeUpdate();
                 }
             }
+            System.out.println("Saving game data for game ID: " + gameID);
+            System.out.println("Players: " + game.getPlayers().size());
+
             conn.commit(); // Commit transaction 
         }
     }
@@ -107,7 +113,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
     @Override
     public List<Game> getLeaderboard(int topN) throws SQLException {
         String leaderboardQuery = 
-        "SELECT game_id, player_name, rounds_to_solve, solved, timestamp, secret_code, guesses " +
+        "SELECT game_id, player_name, player_attempts, solved, timestamp, secret_code, guesses " +
         "FROM game_data " +
         "WHERE solved = 1 " + // Solved games
         "ORDER BY player_attempts ASC, timestamp ASC " + // Fewest rounds, oldest games first
@@ -137,27 +143,34 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 Guesser player = new Guesser(playerName, null);
                 player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
 
-                Game game = gamesById.computeIfAbsent(gameID, id -> {
-                    Game newGame = new Game(new ArrayList<>(), secretCode, this);
-                    newGame.setGameID(gameID);
-                    newGame.setFormattedDate(timestamp);
-                    return newGame;
-                });
-
-                // Create a Guesser obj for the player
-                // Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
-                if (solved) {
-                    player.getGuesses().addAll(Arrays.asList(guesses.split(", "))); // Parse guesses
-                }
-                game.getPlayers().add(player); // Add player to the Game obj
-
-                // Update roundsToSolve and solved for the player
-                game.setRoundsToSolve(roundsToSolve);
+                Game game = new Game(new ArrayList<>(), secretCode, this);
+                game.setGameID(gameID);
                 game.setSolved(solved);
-            }
+                game.setFormattedDate(timestamp);
+                game.getPlayers().add(player);
+
+                // Game game = gamesById.computeIfAbsent(gameID, id -> {
+                //     Game newGame = new Game(new ArrayList<>(), secretCode, this);
+                //     newGame.setGameID(gameID);
+                //     newGame.setFormattedDate(timestamp);
+                //     return newGame;
+            //     });
+
+            //     // Create a Guesser obj for the player
+            //     // Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
+            //     if (solved) {
+            //         player.getGuesses().addAll(Arrays.asList(guesses.split(", "))); // Parse guesses
+            //     }
+            //     game.getPlayers().add(player); // Add player to the Game obj
+
+            //     // Update roundsToSolve and solved for the player
+            //     game.setRoundsToSolve(roundsToSolve);
+            //     game.setSolved(solved);
+            // }
 
             // Add all games to the leaderboard
-            leaderboard.addAll(gamesById.values());
+                leaderboard.add(game);
+            }
         }
     }
     return leaderboard;

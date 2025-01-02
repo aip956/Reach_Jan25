@@ -107,17 +107,27 @@ public class MyMastermind {
             List<Game> leaderboard = gameDataDAO.getLeaderboard(topN);
 
             System.out.println("Leaderboard (Top " + topN + " Players):");
+            // for (Game game : leaderboard) {
+            //     // Retrieve and print player names
+            //     String playerNames = game.getPlayers().stream()
+            //         .map(player -> player.getPlayerName()) // Get player names
+            //         .collect(Collectors.joining(", ")); // Combine names into a single string
             for (Game game : leaderboard) {
-                // Retrieve and print player names
-                String playerNames = game.getPlayers().stream()
-                    .map(player -> player.getPlayerName()) // Get player names
-                    .collect(Collectors.joining(", ")); // Combine names into a single string
-
-                System.out.println("Player: " + playerNames + 
-                ", Rounds: " + game.getRoundsToSolve() +
-                ", Solved: " + game.isSolved() +
-                ", Timestamp: " + game.getFormattedDate());
+                for (String playerName : game.getPlayerAttempts().keySet()) {
+                    int attempts = game.getPlayerAttempts().get(playerName);
+                    System.out.println("Player: " + playerName +
+                    ", Attempts: " + attempts +
+                    ", Solved: " + game.isSolved() +
+                    ", Timestamp: " + game.getFormattedDate());
+                }
             }
+
+
+            //     System.out.println("Player: " + playerNames + 
+            //     ", Rounds: " + game.getRoundsToSolve() +
+            //     ", Solved: " + game.isSolved() +
+            //     ", Timestamp: " + game.getFormattedDate());
+            // }
         } catch (SQLException e) {
             System.err.println("Error fetching leaderboard: " + e.getMessage());
         }

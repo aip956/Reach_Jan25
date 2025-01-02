@@ -76,10 +76,10 @@ public class Game {
         return players;
     }
 
-    public int getPlayerAttempts() {
+    public Map<String, Integer> getPlayerAttempts() {
         return playerAttempts;
     }
-    public void setPlayerAttempts(int playerAttempts) {
+    public void setPlayerAttempts(Map<String, Integer> playerAttempts) {
         this.playerAttempts = playerAttempts;
         // logger.debug("66roundsToSolve: {}", roundsToSolve);
     }
