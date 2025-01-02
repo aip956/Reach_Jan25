@@ -48,7 +48,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             // Create game_data table
             PreparedStatement gameTableStmt = conn.prepareStatement(createGameTableSQL)) {
                 gameTableStmt.execute(); // Execute table creation
-                conn.commit(); // Commit after table creation
+                // conn.commit(); // Commit after table creation
         } catch (SQLException e) {
             System.err.println("Error connecting to db: " + e.getMessage());
             throw e; // Rethrow the exception to signal failure
@@ -68,52 +68,35 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             "guesses) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        int retries = 5;
-        while (retries > 0) {
-            try (Connection conn = DatabaseConnectionManager.getConnection(dbPath)) {
-                conn.setAutoCommit(false); // Enable transaction for consistency
-                int gameID;
-            
-                // Create new game_id
-                try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL (MAX(game_id), 0) + 1 AS new_game_id FROM game_data");
-                    ResultSet rs = stmt.executeQuery()) {
-                        if (rs.next()) {
-                            gameID = rs.getInt("new_game_id");
-                        } else {
-                            throw new SQLException("Failed to generate new game ID");
-                        }
-                    }
 
-                    // Insert rows for each player
-                    try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
-                        for (Guesser player : game.getPlayers()) {
-                            gameStmt.setInt(1, gameID);
-                            gameStmt.setString(2, player.getPlayerName());
-                            gameStmt.setObject(3, player.hasSolved(game.getSecretCode()) ? player.getGuesses().size() : null); // null if not solved
-                            gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
-                            gameStmt.setString(5, game.getFormattedDate());
-                            gameStmt.setString(6, game.getSecretCode());
-                            gameStmt.setString(7, String.join(", ", player.getGuesses()));
-                            gameStmt.executeUpdate();
-                        }
-                    }
-
-                    conn.commit(); // Commit transaction
-                    break; // Exit retry loop on success
-
-                } catch (SQLException e) {
-                    if (e.getMessage().contains("database is locked")) {
-                        retries--;
-                        System.err.println("Database locked; retrying. Attempts remaining: " + retries);
-                        try {
-                            Thread.sleep(100); // Wait before retrying
-                        } catch (InterruptedException interruptedException) {
-                            Thread.currentThread().interrupt();
-                        }
+        try (Connection conn = DatabaseConnectionManager.getConnection(dbPath)) {
+            conn.setAutoCommit(false); // Enable transaction for consistency
+            int gameID;
+        
+            // Create new game_id
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL (MAX(game_id), 0) + 1 AS new_game_id FROM game_data");
+                ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        gameID = rs.getInt("new_game_id");
                     } else {
-                    throw e; // Rethrow other exceptions
+                        throw new SQLException("Failed to generate new game ID");
+                    }
                 }
-            } 
+
+                // Insert rows for each player
+                try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
+                    for (Guesser player : game.getPlayers()) {
+                        gameStmt.setInt(1, gameID);
+                        gameStmt.setString(2, player.getPlayerName());
+                        gameStmt.setObject(3, player.hasSolved(game.getSecretCode()) ? player.getGuesses().size() : null); // null if not solved
+                        gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
+                        gameStmt.setString(5, game.getFormattedDate());
+                        gameStmt.setString(6, game.getSecretCode());
+                        gameStmt.setString(7, String.join(", ", player.getGuesses()));
+                        gameStmt.executeUpdate();
+                    }
+                }
+                conn.commit(); // Commit transaction 
         }
     }
 
@@ -127,80 +110,60 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         "LIMIT ?";
         
         List<Game> leaderboard = new ArrayList<>();
-        int retries = 5;
 
-        while (retries > 0) {
-            try (Connection conn = DatabaseConnectionManager.getConnection(dbPath);
-            PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
-                stmt.setInt(1, topN); // Set limit dynamically
+        try (Connection conn = DatabaseConnectionManager.getConnection(dbPath);
+        PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
+            stmt.setInt(1, topN); // Set limit dynamically
 
-            try (ResultSet rs = stmt.executeQuery()) {  
-                // Temp map to group players by game ID
-                Map<Integer, List<Guesser>> playersByGame = new HashMap<>();
+        try (ResultSet rs = stmt.executeQuery()) {  
+            // Temp map to group players by game ID
+            Map<Integer, List<Guesser>> playersByGame = new HashMap<>();
 
-                // Iterate through the result set
-                while (rs.next()) {
-                    int gameID = rs.getInt("game_id");
-                    String playerName = rs.getString("player_name");
+            // Iterate through the result set
+            while (rs.next()) {
+                int gameID = rs.getInt("game_id");
+                String playerName = rs.getString("player_name");
 
-                    // Create a Guesser obj for the player
-                    Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
-                    // Group players by game ID
-                    playersByGame.computeIfAbsent(gameID, k -> new ArrayList<>()).add(player);
-                }
+                // Create a Guesser obj for the player
+                Guesser player = new Guesser(playerName, null); // Pass null for Scanner since not needed here
+                // Group players by game ID
+                playersByGame.computeIfAbsent(gameID, k -> new ArrayList<>()).add(player);
+            }
 
+            // Build Game objs for each game ID
+            for (Map.Entry<Integer, List<Guesser>> entry : playersByGame.entrySet()) {
+                int gameID = entry.getKey();
+                List<Guesser> players = entry.getValue();
 
-                // Build Game objs for each game ID
-                for (Map.Entry<Integer, List<Guesser>> entry : playersByGame.entrySet()) {
-                    int gameID = entry.getKey();
-                    List<Guesser> players = entry.getValue();
+                try (PreparedStatement gameStmt = conn.prepareStatement(
+                    "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code " +
+                    "FROM game_data WHERE game_id = ?")) {
+                    
+                    gameStmt.setInt(1, gameID);
 
-                    try (PreparedStatement gameStmt = conn.prepareStatement(
-                        "SELECT DISTINCT rounds_to_solve, solved, timestamp, secret_code " +
-                        "FROM game_data WHERE game_id = ?")) {
-                            gameStmt.setInt(1, gameID);
-
-                            try (ResultSet gameResult = gameStmt.executeQuery()) {
-                                if (gameResult.next()) {
-                                    String secretCode = gameResult.getString("secret_code");
-                                    int roundsToSolve = gameResult.getInt("rounds_to_solve");
-                                    boolean solved = gameResult.getBoolean("solved");
-                                    String formattedDate = gameResult.getString("timestamp");
-            
-                                    // Create the Game obj
-                                    Game game = new Game(players, secretCode, this);
-                                    game.setGameID(gameID);
-                                    game.setRoundsToSolve(roundsToSolve);
-                                    game.setSolved(solved);
-                                    game.setFormattedDate(formattedDate);
-            
-                                    // Add to leaderboard
-                                    leaderboard.add(game);
-                                }
-                            }
+                    try (ResultSet gameResult = gameStmt.executeQuery()) {
+                        if (gameResult.next()) {
+                            String secretCode = gameResult.getString("secret_code");
+                            int roundsToSolve = gameResult.getInt("rounds_to_solve");
+                            boolean solved = gameResult.getBoolean("solved");
+                            String formattedDate = gameResult.getString("timestamp");
+    
+                            // Create the Game obj
+                            Game game = new Game(players, secretCode, this);
+                            game.setGameID(gameID);
+                            game.setRoundsToSolve(roundsToSolve);
+                            game.setSolved(solved);
+                            game.setFormattedDate(formattedDate);
+    
+                            // Add to leaderboard
+                            leaderboard.add(game);
                         }
                     }
-                } 
-                break;
-            } catch (SQLException e) {
-                if (e.getMessage().contains("database is locked")) {
-                    retries--;
-                    System.err.println("Database locked; retrying. Attempts remaining: " + retries);
-                    try {
-                        Thread.sleep(100); // Wait before retrying
-                    } catch (InterruptedException interruptedException) {
-                        Thread.currentThread().interrupt();
-                    }
-                } else {
-                throw e; // Rethrow other exceptions
                 }
             }
-        }
-
-        if (retries == 0) {
-            throw new SQLException("Failed to fetch leaderbaord after multiple attempts; database locked");
-        }    
-        return leaderboard;
+        }   
+    }
+    return leaderboard;
     }
 }
 

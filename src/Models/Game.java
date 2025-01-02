@@ -236,8 +236,7 @@ public class Game {
         // Compute game-related details
         int roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
         String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        // this.roundsToSolve = MAX_ATTEMPTS - attemptsLeft;
-        // this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        this.formattedDate = formattedDate;
 
 
         try {
@@ -251,11 +250,9 @@ public class Game {
             gameUI.displayMessage("Game data saved");
         } catch (SQLException e) {
             gameUI.displayMessage("Error occured saving game data: " + e.getMessage());
-        }
-
-
-        // saveGameDataToDatabase();
-        gameUI.close();        
+        } finally {
+            gameUI.close(); 
+        }              
     }
 }
 
