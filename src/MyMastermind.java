@@ -52,7 +52,21 @@ public class MyMastermind {
         try {
             // Set up players
             List<Guesser> players = gameSetup.setupPlayers(gameDataDAO, args);
-            } finally {
+
+            // Generate secret code
+            SecretKeeper secretKeeper = new SecretKeeper();
+            String secretCode = secretKeeper.getSecretCode();
+
+            // Initialize the game
+            Game game = new Game(players, secretCode, gameDataDAO);
+
+            // Start game
+            game.startGame();
+
+            // Handle leaderboard logic
+            leaderboardMngr.handleLeaderboard(args);
+
+        } finally {
             System.out.println("Game finished.");
             scanner.close(); // Close the scanner
             System.out.println("Scanner closed");
