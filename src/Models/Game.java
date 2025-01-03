@@ -4,46 +4,46 @@ package Models;
 
 import Utils.ValidationUtils;
 import View.GameUI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List; 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.sql.SQLException;
-import java.util.stream.Collectors;
 import DAO.GameDataDAO;
+
+import java.util.*;
+import java.text.SimpleDateFormat;
+// import java.util.Date;
+import java.sql.SQLException;
+// import java.util.stream.Collectors;
+
 
 
 public class Game {
 
     private List<Guesser> players; // List of players if multiplayer
-    private int currentPlayerIndex; // Track the player
+    // private int currentPlayerIndex; // Track the player
     private GameUI gameUI;
     private String secretCode;
     private List<String> guesses;
-    public int attemptsLeft;
+    // public int attemptsLeft;
     private boolean solved;
     private GameDataDAO gameDataDAO;
-    
-
-    public static final int MAX_ATTEMPTS = 5;
-
-    private int gameID; 
     private Map<String, Integer> playerAttempts = new HashMap<>();
     private String formattedDate;
+
+    // public static final int MAX_ATTEMPTS = 5;
+    private int gameID; 
+    
+
 
 
     // class constructor; use List<Guesser> players for guesser
     public Game (List<Guesser> players, String secretCode, GameDataDAO gameDataDAO) {
         this.players = players;
-        this.currentPlayerIndex = 0; // Start with the first player
+        // this.currentPlayerIndex = 0; // Start with the first player
         this.secretCode = secretCode;
         this.gameUI = new GameUI();
         this.guesses = new ArrayList<>();
-        this.attemptsLeft = MAX_ATTEMPTS;
+        // this.attemptsLeft = MAX_ATTEMPTS;
         this.gameDataDAO = gameDataDAO;      
         this.solved = false;
+        this.playerAttempts = new HashMap<>();
 
         // Initialize all players' attempts
         for (Guesser player : players) {
@@ -61,6 +61,13 @@ public class Game {
         // logger.debug("48GameIDD: {}", gameID);
     }
 
+    public String getFormattedDate() {
+        return formattedDate;
+    }
+    public void setFormattedDate (String formattedDate) {
+        this.formattedDate = formattedDate;
+    }
+
     public List<Guesser> getPlayers() {
         return players;
     }
@@ -68,9 +75,10 @@ public class Game {
     public Map<String, Integer> getPlayerAttempts() {
         return playerAttempts;
     }
-    public void setPlayerAttempts(Map<String, Integer> playerAttempts) {
-        this.playerAttempts = playerAttempts;
-    }
+
+    // public void setPlayerAttempts(Map<String, Integer> playerAttempts) {
+    //     this.playerAttempts = playerAttempts;
+    // }
 
 
     public boolean isSolved() {
@@ -80,30 +88,6 @@ public class Game {
         this.solved = solved;
     }
 
-    public String getFormattedDate() {
-        return formattedDate;
-    }
-    public void setFormattedDate (String formattedDate) {
-        this.formattedDate = formattedDate;
-    }
-
-    public String getSecretCode() {
-        return secretCode;
-    }
-
-    public List<String> getGuesses() {
-        return guesses;
-    }
-    public void setGuesses(List<String> guesses) {
-        this.guesses = guesses;
-    }
-
-    public static int getMaxAttempts() {
-        return MAX_ATTEMPTS;
-    }
-    public int getAttemptsLeft() {
-        return attemptsLeft;
-    }
     public boolean hasAttemptsLeft(Guesser player) {
         return playerAttempts.get(player.getPlayerName()) < player.getLevel().getMaxAttempts();
     }
@@ -114,52 +98,41 @@ public class Game {
         return guess != null && guess.matches(ValidationUtils.VALID_GUESS_PATTERN);
     }
 
-    public void evaluateGuess(String guess) {
-        if (!isValidGuess(guess)) {
-            throw new IllegalArgumentException("Invalid guess");
-        }
-        guesses.add(guess); // Add guess to list of guesses
-        attemptsLeft--;
+
+
+
+    public String getSecretCode() {
+        return secretCode;
     }
 
+    // public List<String> getGuesses() {
+    //     return guesses;
+    // }
+    // public void setGuesses(List<String> guesses) {
+    //     this.guesses = guesses;
+    // }
+
+    // public static int getMaxAttempts() {
+    //     return MAX_ATTEMPTS;
+    // }
+    // public int getAttemptsLeft() {
+    //     return attemptsLeft;
+    // }
 
 
-    public String provideFeedback(Player player, String guess) {
-        if (!player.getLevel().isShowDetailedFb()) {
-            return player.getPlayerName() + ": Guess evaluated. No detailed feedback for you.";
-        }
 
-        if (!isValidGuess(guess)) {
-            return "Invalid guess; enter 4 digits, 0 - 7.";
-        }
-        
-        int wellPlaced = 0;
-        int misPlaced = 0;
-        Map<Character, Integer> secretCount = new HashMap<>();
-        Map<Character, Integer> guessCount = new HashMap<>();
 
-        // Count well placed; populate hash
-        for (int i = 0; i < secretCode.length(); i++) {
-            char secretChar = secretCode.charAt(i);
-            char guessChar = guess.charAt(i);
+    // public void evaluateGuess(String guess) {
+    //     if (!isValidGuess(guess)) {
+    //         throw new IllegalArgumentException("Invalid guess");
+    //     }
+    //     guesses.add(guess); // Add guess to list of guesses
+    //     attemptsLeft--;
+    // }
 
-            if (secretChar == guessChar) {
-                wellPlaced++;
-            }
-            else {
-                secretCount.put(secretChar, secretCount.getOrDefault(secretChar, 0) + 1);
-                guessCount.put(guessChar, guessCount.getOrDefault(guessChar, 0) + 1);
-            }
-        }
 
-        // Count mis-placed
-        for (char c : guessCount.keySet()) {
-            if (secretCount.containsKey(c)) {
-                misPlaced += Math.min(secretCount.get(c), guessCount.get(c));
-            }
-        }
-        return String.format("Well placed pieces: %d\nMisplaced pieces: %d", wellPlaced, misPlaced);
-    }
+
+    
 
     public void startGame() {
         // Use gameUI for UI interactions
@@ -187,9 +160,10 @@ public class Game {
                     gameUI.displayMessage("Invalid input! Try again.");
                 }
             }
+            guesses.add(guess);
 
             // Process valid guess
-            evaluateGuess(guess);
+            // evaluateGuess(guess);
             playerAttempts.put(playerName, playerAttempts.get(playerName) + 1);
 
             // Check if guess is correct
@@ -211,13 +185,62 @@ public class Game {
         finalizeGameData();
     }
 
+    public String provideFeedback(Player player, String guess) {
+        if (!player.getLevel().isShowDetailedFb()) {
+            return "Guess evaluated. No detailed feedback for you.";
+        }
+
+        // if (!isValidGuess(guess)) {
+        //     return "Invalid guess; enter 4 digits, 0 - 7.";
+        // }
+        
+        int wellPlaced = 0;
+        int misPlaced = 0;
+        Map<Character, Integer> secretCount = new HashMap<>();
+        // Map<Character, Integer> guessCount = new HashMap<>();
+
+        // Count well placed; populate hash
+        for (int i = 0; i < secretCode.length(); i++) {
+            if (secretCode.charAt(i) == guess.charAt(i)) {
+                wellPlaced++;
+            } else {
+                secretCount.put(secretCode.charAt(i), secretCount.getOrDefault(secretCode.charAt(i), 0) + 1);
+            }
+            // char secretChar = secretCode.charAt(i);
+            // char guessChar = guess.charAt(i);
+
+            // if (secretChar == guessChar) {
+            //     wellPlaced++;
+            // }
+            // else {
+            //     secretCount.put(secretChar, secretCount.getOrDefault(secretChar, 0) + 1);
+            //     guessCount.put(guessChar, guessCount.getOrDefault(guessChar, 0) + 1);
+            // }
+        }
+
+        // Count mis-placed
+        for (int i = 0; i < guess.length(); i++) {
+            if (secretCode.charAt(i) != guess.charAt(i) && secretCount.getOrDefault(guess.charAt(i), 0) > 0) {
+                misPlaced++;
+                secretCount.put(guess.charAt(i), secretCount.get(guess.charAt(i)) - 1);
+            }
+        }
+        // for (char c : guessCount.keySet()) {
+        //     if (secretCount.containsKey(c)) {
+        //         misPlaced += Math.min(secretCount.get(c), guessCount.get(c));
+        //     }
+        // }
+        return String.format("Well placed pieces: %d\nMisplaced pieces: %d", wellPlaced, misPlaced);
+    }
+
+
+
 
     private void finalizeGameData() {
-        this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
         gameUI.displayMessage("Finalizing game data...");
 
         try {
-
             // Save game data
             gameDataDAO.saveGameData(this);
             // gameUI.displayMessage("Game data saved");
