@@ -1,6 +1,7 @@
 // Models.Guesser.java
 
 package Models;
+
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,8 @@ public class Guesser extends Player {
     private Scanner scanner;
     private List<String> guesses;
 
-    public Guesser(String name, Scanner scanner) {
-        super(name);// Call the Player constructor
+    public Guesser(String name, PlayerLevel level, Scanner scanner) {
+        super(name, level);// Call the Player constructor
         this.scanner = scanner; // Using shared Scanner
         this.guesses = new ArrayList<>();
     }

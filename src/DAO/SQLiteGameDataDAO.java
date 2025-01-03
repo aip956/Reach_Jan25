@@ -7,6 +7,7 @@ Data Access Object; Handles all database interactions related to GameData,
 package DAO;
 import Models.Game;
 import Models.Guesser;
+import Models.PlayerLevel;
 import DBConnectionManager.DatabaseConnectionManager;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,6 +41,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 "game_id INTEGER NOT NULL, " +
                 "player_name TEXT NOT NULL, " +
                 "player_attempts INTEGER NOT NUll, " + 
+                "player_level TEXT NOT NULL, " +
                 "solved BOOLEAN NOT NULL, " +
                 "timestamp TEXT NOT NULL, " +
                 "secret_code TEXT NOT NULL, " +
@@ -65,11 +67,12 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             "game_id, " +
             "player_name, " +
             "player_attempts, " +
+            "player_level, " +
             "solved, " +
             "timestamp, " +
             "secret_code, " + 
             "guesses) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 
         try (Connection conn = DatabaseConnectionManager.getConnection(dbPath)) {
@@ -91,15 +94,17 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                 for (Guesser player : game.getPlayers()) {
                     String playerName = player.getPlayerName();
                     int attemptsMade = game.getPlayerAttempts().get(playerName);
+                    String playerLevel = player.getLevel().name();
                     // System.out.println("Inserting Player: " + playerName + ", Attempts: " + attemptsMade);
 
                     gameStmt.setInt(1, gameID);
                     gameStmt.setString(2, playerName);
                     gameStmt.setObject(3, attemptsMade); 
-                    gameStmt.setBoolean(4, player.hasSolved(game.getSecretCode())); // True if player solved
-                    gameStmt.setString(5, game.getFormattedDate());
-                    gameStmt.setString(6, game.getSecretCode());
-                    gameStmt.setString(7, String.join(", ", player.getGuesses()));
+                    gameStmt.setString(4, playerLevel);
+                    gameStmt.setBoolean(5, player.hasSolved(game.getSecretCode())); // True if player solved
+                    gameStmt.setString(6, game.getFormattedDate());
+                    gameStmt.setString(7, game.getSecretCode());
+                    gameStmt.setString(8, String.join(", ", player.getGuesses()));
                     gameStmt.executeUpdate();
                 }
             }
@@ -113,7 +118,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
     @Override
     public List<Game> getLeaderboard(int topN) throws SQLException {
         String leaderboardQuery = 
-        "SELECT game_id, player_name, player_attempts, solved, timestamp, secret_code, guesses " +
+        "SELECT game_id, player_name, player_attempts, player_level, solved, timestamp, secret_code, guesses " +
         "FROM game_data " +
         "WHERE solved = 1 " + // Solved games
         "ORDER BY player_attempts ASC, timestamp ASC " + // Fewest rounds, oldest games first
@@ -126,22 +131,21 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             stmt.setInt(1, topN); // Set limit dynamically
 
         try (ResultSet rs = stmt.executeQuery()) {  
-            // Temp map to group players by game ID
-            // Map<Integer, Game> gamesById = new HashMap<>();
-
+ 
             // Iterate through the result set
             while (rs.next()) {
                 int gameID = rs.getInt("game_id");
                 String playerName = rs.getString("player_name");
                 int playerAttempts = rs.getInt("player_attempts");
+                String playerLevel = rs.getString("player_level");
                 boolean solved = rs.getBoolean("solved");
                 String timestamp = rs.getString("timestamp");
                 String secretCode = rs.getString("secret_code");
                 String guesses = rs.getString("guesses");
 
-                System.out.println("Leaderboard Player: " + playerName + ", Attempts: " + playerAttempts);
+                System.out.println("Leaderboard Player: " + playerName + " Level: " + playerLevel + " Attempts: " + playerAttempts);
                 // Create or retrieve the Game obj for this game_id
-                Guesser player = new Guesser(playerName, null);
+                Guesser player = new Guesser(playerName, PlayerLevel.valueOf(playerLevel), null);
                 player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
 
                 Game game = new Game(new ArrayList<>(), secretCode, this);

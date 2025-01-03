@@ -44,6 +44,11 @@ public class Game {
         this.attemptsLeft = MAX_ATTEMPTS;
         this.gameDataDAO = gameDataDAO;      
         this.solved = false;
+
+        // Initialize all players' attempts
+        for (Guesser player : players) {
+            playerAttempts.put(player.getPlayerName(), 0);
+        }
     }
     
 
@@ -99,8 +104,8 @@ public class Game {
     public int getAttemptsLeft() {
         return attemptsLeft;
     }
-    public boolean hasAttemptsLeft() {
-        return attemptsLeft > 0;
+    public boolean hasAttemptsLeft(Guesser player) {
+        return playerAttempts.get(player.getPlayerName()) < player.getLevel().getMaxAttempts();
     }
 
     // Method to check if guess is four nums 0 - 8
@@ -119,7 +124,10 @@ public class Game {
 
 
 
-    public String provideFeedback(String guess) {
+    public String provideFeedback(Player player, String guess) {
+        if (!player.getLevel().isShowDetailedFb()) {
+            return player.getPlayerName() + ": Guess evaluated. No detailed feedback for you.";
+        }
 
         if (!isValidGuess(guess)) {
             return "Invalid guess; enter 4 digits, 0 - 7.";
@@ -131,7 +139,7 @@ public class Game {
         Map<Character, Integer> guessCount = new HashMap<>();
 
         // Count well placed; populate hash
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < secretCode.length(); i++) {
             char secretChar = secretCode.charAt(i);
             char guessChar = guess.charAt(i);
 
@@ -157,19 +165,14 @@ public class Game {
         // Use gameUI for UI interactions
         gameUI.displayMessage("Will you find the secret code?\nGood luck!");
 
-        // Initialize all players' attempts
-        for (Guesser player : players) {
-            playerAttempts.put(player.getPlayerName(), 0);
-        }
-
-
-        while (!solved && players.stream().anyMatch(player -> playerAttempts.get(player.getPlayerName()) < MAX_ATTEMPTS)) {
-            Guesser currentPlayer = players.get(currentPlayerIndex);
+        while (!solved && players.stream().anyMatch(this::hasAttemptsLeft)) {
+            Guesser currentPlayer = players.get(0);
             String playerName = currentPlayer.getPlayerName();
+            PlayerLevel level = currentPlayer.getLevel();
 
             // Display current player's status
             gameUI.displayMessage("Current player: " + playerName);
-            gameUI.displayMessage("Attempts left: " + (MAX_ATTEMPTS - playerAttempts.get(playerName)));
+            gameUI.displayMessage("Attempts left: " + (level.getMaxAttempts() - playerAttempts.get(playerName)));
 
             // Make a guess
             String guess = currentPlayer.makeGuess();
@@ -178,21 +181,21 @@ public class Game {
             if (isValidGuess(guess)) {
                 evaluateGuess(guess);
                 playerAttempts.put(playerName, playerAttempts.get(playerName) + 1);
-                String feedback = provideFeedback(guess);
-                gameUI.displayMessage(feedback);
 
                 // Check if the guess is correct
                 if (guess.equals(secretCode)) {
                     gameUI.displayMessage("Congrats " + playerName + "! You did it");
                     solved = true;
-                    break;
+                } else {
+                    String feedback = provideFeedback(currentPlayer, guess);
+                    gameUI.displayMessage(feedback);
                 }
             } else {
                 gameUI.displayMessage("Invalid input! Try again.");
             }
 
             // Move to next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            players.add(players.remove(0)); // Rotate player list
         }
 
         if (!solved) {
@@ -204,14 +207,14 @@ public class Game {
 
     private void finalizeGameData() {
         this.formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-        System.out.println("Finalizing game data...");
+        gameUI.displayMessage("Finalizing game data...");
 
         try {
-            for (Guesser player : players) {
-                String playerName = player.getPlayerName();
-                int attemptsMade = playerAttempts.get(playerName);
-                // System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
-            }
+            // for (Guesser player : players) {
+            //     String playerName = player.getPlayerName();
+            //     int attemptsMade = playerAttempts.get(playerName);
+            //     // System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
+            // }
 
             // Save game data
             gameDataDAO.saveGameData(this);

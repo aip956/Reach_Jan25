@@ -1,3 +1,5 @@
+// Models.PlayerLevel.java
+
 package Models;
 
 public enum PlayerLevel {
@@ -17,7 +19,21 @@ public enum PlayerLevel {
         return maxAttempts;
     }
     
-    public boolean showDetailedFb() {
+    public boolean isShowDetailedFb() {
         return showDetailedFb;
+    }
+
+    // Static method to get PlayerLevel by numeric choice
+    public static PlayerLevel fromChoice(int choice) {
+        switch (choice) {
+            case 1:
+                return BEGINNER;
+            case 2:
+                return MEDIUM;
+            case 3:
+                return HARD;
+            default:
+                return MEDIUM;
+        }
     }
 }

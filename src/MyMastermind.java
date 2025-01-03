@@ -2,6 +2,7 @@
 
 import Controller.LeaderboardMngr;
 import Models.Guesser;
+import Models.PlayerLevel;
 import Models.SecretKeeper;
 import Models.Game;
 import View.GameUI;
@@ -57,7 +58,13 @@ public class MyMastermind {
             for (int i = 0; i < numPlayers; i++) {
                 System.out.print("Enter name for Player " + (i + 1) + ": ");
                 String playerName = scanner.nextLine();
-                players.add(new Guesser(playerName, scanner)); // Pass player name; shared scanner; instantiate guesser
+
+                // Prompt for level
+                System.out.println("Select level for " + playerName + " (1 = Beginner, 2 = Medium, 3 = Hard): ");
+                int levelChoice = Integer.parseInt(scanner.nextLine());
+
+                PlayerLevel level = PlayerLevel.fromChoice(levelChoice); // Use static method
+                players.add(new Guesser(playerName, level, scanner)); // Pass player name; shared scanner; instantiate guesser
             }
         
             System.out.println("Players added: " + players.size());
