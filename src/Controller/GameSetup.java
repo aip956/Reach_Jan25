@@ -14,21 +14,21 @@ import java.util.Scanner;
 
 
 
-public class GameInit {
+public class GameSetup {
     private Scanner scanner;
 
-    public GameInit(Scanner scanner) {
+    public GameSetup(Scanner scanner) {
         this.scanner = scanner;
     }
 
-    public Game initGame(GameDataDAO gameDataDAO, String[] args) {
+    public List<Guesser> setupPlayers(GameDataDAO gameDataDAO, String[] args) {
+        List<Guesser> players = new ArrayList<>();
         try {
             // Get num of players
             System.out.print("Enter number of players: ");
             int numPlayers = Integer.parseInt(scanner.nextLine());
             
             // Set up player names and levels
-            List<Guesser> players = new ArrayList<>();
             for (int i = 0; i < numPlayers; i++) {
                 System.out.print("Enter name for Player " + (i + 1) + ": ");
                 String playerName = scanner.nextLine();
@@ -39,31 +39,22 @@ public class GameInit {
                 PlayerLevel level = PlayerLevel.fromChoice(levelChoice); // Use static method
                 players.add(new Guesser(playerName, level, scanner)); // Pass player name; shared scanner; instantiate guesser
             }
-        
             System.out.println("Players added: " + players.size());
-
-            // Flag check
-            boolean debugMode = false;
-            for (String arg : args) {
-                if ("-d".equals(arg)) {
-                    debugMode = true;
-                }
-            }
-            System.out.println("debugger: " + debugMode);
-
-            // Initialize secret keeper
-            SecretKeeper secretKeeper = new SecretKeeper();
-            String secretCode = secretKeeper.getSecretCode();
-
-            // Start game
-            Game game = new Game(players, secretCode, gameDataDAO);
-            game.startGame();
-
-            // Handle leaderboard logic
-            leaderboardMngr.handleLeaderboard(args);
-
-            
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid input. Please restart and provide inputs.");
         }
+        return players;
     }
-    
+    // Flag check
+    public boolean checkDebugMode (String[] args) {
+        for (String arg : args) {
+            if ("-d".equals(arg)) {
+                System.out.println("Debugger enabled");
+                return true;
+            }
+        }
+        return false; // Debugger off
+    }
 }
+
+
