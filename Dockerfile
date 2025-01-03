@@ -21,9 +21,7 @@ COPY . .
 RUN ls -la /usr/src/app/src
 
 # Compile the application with all necessary dependencies
-RUN javac -cp ".:src/lib/*" ./src/DAO/*.java ./src/DBConnectionManager/*.java ./src/Models/*.java ./src/View/*.java ./src/MyMastermind.java
-
+#RUN javac -cp ".:src/lib/*" ./src/DAO/*.java ./src/DBConnectionManager/*.java ./src/Models/*.java ./src/View/*.java ./src/MyMastermind.java
+RUN javac -cp ".:src/lib/*" $(find src -name "*.java")
 # Will run the build
-CMD ["java", "-cp", ".:src/lib/*:src/", "MyMastermind"]
-
-
+CMD ["java", "-cp", ".:src/lib/*:src", "MyMastermind"]
