@@ -175,23 +175,30 @@ public class Game {
             gameUI.displayMessage("Attempts left: " + (level.getMaxAttempts() - playerAttempts.get(playerName)));
 
             // Make a guess
-            String guess = currentPlayer.makeGuess();
-            gameUI.displayMessage("Player " + playerName + "'s guess: " + guess);
-
-            if (isValidGuess(guess)) {
-                evaluateGuess(guess);
-                playerAttempts.put(playerName, playerAttempts.get(playerName) + 1);
-
-                // Check if the guess is correct
-                if (guess.equals(secretCode)) {
-                    gameUI.displayMessage("Congrats " + playerName + "! You did it");
-                    solved = true;
+            // String guess = currentPlayer.makeGuess();
+            String guess;
+            while (true) { // Loop until a valid guess entered
+                guess = currentPlayer.makeGuess();
+                gameUI.displayMessage("Player " + playerName + "'s guess: " + guess);
+                
+                if (isValidGuess(guess)) {
+                    break; // Exit the loop if guess valid
                 } else {
-                    String feedback = provideFeedback(currentPlayer, guess);
-                    gameUI.displayMessage(feedback);
+                    gameUI.displayMessage("Invalid input! Try again.");
                 }
+            }
+
+            // Process valid guess
+            evaluateGuess(guess);
+            playerAttempts.put(playerName, playerAttempts.get(playerName) + 1);
+
+            // Check if guess is correct
+            if (guess.equals(secretCode)) {
+                gameUI.displayMessage("Congrats " + playerName + "! You did it");
+                solved = true;
             } else {
-                gameUI.displayMessage("Invalid input! Try again.");
+                String feedback = provideFeedback(currentPlayer, guess);
+                gameUI.displayMessage(feedback);
             }
 
             // Move to next player
@@ -210,11 +217,6 @@ public class Game {
         gameUI.displayMessage("Finalizing game data...");
 
         try {
-            // for (Guesser player : players) {
-            //     String playerName = player.getPlayerName();
-            //     int attemptsMade = playerAttempts.get(playerName);
-            //     // System.out.println("Final Attempts for Player " + playerName + ": " + attemptsMade);
-            // }
 
             // Save game data
             gameDataDAO.saveGameData(this);
