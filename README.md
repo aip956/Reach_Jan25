@@ -141,7 +141,7 @@ Exit the container's shell:
 
 ## Screen Captures
 
-### For the sake of brevity, I limited the maximum attempts to 5 (instead of 10).</br>
+</br>
 
 #### Run and play the game locally using the command line:</br> 
 ![Running locally on command line](./ScreenCaps/GamePlay.png)
@@ -168,7 +168,7 @@ Exit the container's shell:
 </br>
 
 #### Playing in Docker:
-##### After building the container, game play is the same as running locally 
+- After building the container, game play is the same as running locally 
 </br>
 
 #### View Docker Data:</br> 
