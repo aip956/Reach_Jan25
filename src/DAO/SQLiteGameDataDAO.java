@@ -119,52 +119,15 @@ public class SQLiteGameDataDAO implements GameDataDAO {
     public List<Game> getLeaderboard(int topN) throws SQLException {
         throw new UnsupportedOperationException("Leaderboard diabled");
     }
-
+    
     // @Override
-    // public List<Game> getLeaderboard(int topN) throws SQLException {
-    //     String leaderboardQuery = 
-    //     "SELECT game_id, player_name, player_attempts, player_level, solved, timestamp, secret_code, guesses " +
-    //     "FROM game_data " +
-    //     "WHERE solved = 1 " + // Solved games
-    //     "ORDER BY player_attempts ASC, timestamp ASC " + // Fewest rounds, oldest games first
-    //     "LIMIT ?";
-        
-    //     List<Game> leaderboard = new ArrayList<>();
-
-    //     try (Connection conn = DatabaseConnectionManager.getConnection(dbPath);
-    //         PreparedStatement stmt = conn.prepareStatement(leaderboardQuery)) {
-    //         stmt.setInt(1, topN); // Set limit dynamically
-
-    //     try (ResultSet rs = stmt.executeQuery()) {  
- 
-    //         // Iterate through the result set
-    //         while (rs.next()) {
-    //             int gameID = rs.getInt("game_id");
-    //             String playerName = rs.getString("player_name");
-    //             int playerAttempts = rs.getInt("player_attempts");
-    //             String playerLevel = rs.getString("player_level");
-    //             boolean solved = rs.getBoolean("solved");
-    //             String timestamp = rs.getString("timestamp");
-    //             String secretCode = rs.getString("secret_code");
-    //             String guesses = rs.getString("guesses");
-
-    //             System.out.println("Leaderboard Player: " + playerName + " Level: " + playerLevel + " Attempts: " + playerAttempts);
-    //             // Create or retrieve the Game obj for this game_id
-    //             Guesser player = new Guesser(playerName, PlayerLevel.valueOf(playerLevel), null);
-    //             player.getGuesses().addAll(Arrays.asList(guesses.split(", ")));
-
-    //             Game game = new Game(new ArrayList<>(), secretCode, this);
-    //             game.setGameID(gameID);
-    //             game.setSolved(solved);
-    //             game.setFormattedDate(timestamp);
-    //             game.getPlayers().add(player);
-
-    //             // Add game to leaderboard
-    //             leaderboard.add(game);
-    //         }
-    //     }
-    // }
-    // return leaderboard;
-    // }
+    // Method to get leaderboard
+    // sql query
+    // list for leaderboard
+    // make db connection
+    // iterate through result set
+    // print LB info
+    // create new game with this data to populate from db
+    
 }
 

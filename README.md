@@ -181,8 +181,6 @@ Exit the container's shell:
 
 
 
-</br>
-
 
 
 #### Unified Modeling Language Diagram
