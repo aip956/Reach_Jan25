@@ -115,7 +115,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
         }
     }
 
-    @Override
+
     public List<Game> getLeaderboard(int topN) throws SQLException {
         throw new UnsupportedOperationException("Leaderboard diabled");
     }
