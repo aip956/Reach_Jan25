@@ -1,125 +1,91 @@
 # Welcome to My Mastermind in Java
-## Overview
+## Task
 This project implementats the classic Mastermind number guessing game. The user plays against the program. Read more about it here: 
 * https://en.wikipedia.org/wiki/Mastermind_(board_game)
 
-Key features include:
-- Written in Java, adhering to Object-Oriented Programming (OOP) and (mostly) SOLID principles.
-- Game data, including player names, rounds, results, timestamps, secret codes, and guess histories, are stored in an SQLite database.
-- Docker-enabled for cross-platform compatibility and ease of use.
+It's written in Java with Object Oriented Programming and (mostly) SOLID design. Game data (player name, number of rounds, solved, timestamp, secret code, and guess history) will save to an SQLite database. It's also Docker-enabled, so the user can play in the container.
 
 ## Game Rules
-The goal of Mastermind is to guess the secret code composed of four distinct pieces, each ranging from 0 to 7. After each guess, feedback is provided:
+The Mastermind game requires the user to guess the secret code composed of four distinct pieces. After each guess, the user will be informed of the number of correctly placed pieces and the number of misplaced pieces. The objective is to guess the secret code in the fewest attempts possible. There are 8 pieces (numbers 0 -7), and a secret code composed of 4 distinct pieces.
 
-- Correctly placed pieces: Numbers in the correct position.
-- Misplaced pieces: Numbers that are correct but in the wrong position.
-  
-The user has 10 attempts by default (configurable) to guess the secret code.
+Typically, the user has 10 tries to guess the right pieces and sequence. After each guess, the user will be told the number of correctly placed pieces, and misplaced pieces. (For brevity, my screen captures have a 5-try maximum.)
+
+
+* Once the game starts, database connection messages will display
+* Once the game ends, a game save message should display
+* Refer to the screen captures
+* Once the game starts, the user will be prompted to enter a name
+* The user will be told which round (starting at 0), and remaining rounds
+* Each guess must be 4 digits 0 - 7. There will be 10 chances to guess the code.
 
 
 ## Installation and Operation
 The game can be played through a command line interface (locally), or through a Docker container (requires Docker Desktop). The addition of Docker should allow a user to run my application on any system that supports Docker.
 
 
-#### Requirements
-Java: To check if you have it installed, in the terminal:</br>
-If not installed, you can install here: https://www.java.com/en/
+Requirements
+* Java; to check if you have it installed, in the terminal:
+  * java -version
+    * This will display the Java version if installed
+  * If not installed, you can install here: https://www.java.com/en/
+* Docker Desktop; this application manages containerization. To check if Docker is installed, in the terminal:
+  * docker --version
+  * If not installed, you can download it here: https://www.docker.com/get-started/
 
-```
-java -version
-```
-
-Docker Desktop: This application manages containerization. To check if Docker is installed, in the terminal:
-```
-docker --version
-```
-If not installed, you can download it here: https://www.docker.com/get-started/
-
-#### Installation:
 Copy the repository:
-```
-git clone https://github.com/aip956/MM_Reach.git
-```
+* git clone https://github.com/aip956/MM_Reach.git
 
 Change into the cloned repository
-```
-cd MM_Reach
-```
+* cd MM_Reach
 </br>
 
-### Running the Game
-#### Local Execution
+### To run locally: 
+Open the terminal and navigate to the game's directory. In the command line,</br>
+1. Enable the script (1st time): </br>
+    * chmod +x ./play_LocalMM.sh</br>
+1. Run: </br>
+    * ./play_LocalMM.sh</br>
+    * To display leaderboard: ./play_LocalMM.sh --leaderboard 5</br>
+      * (Default number to display is 3; example uses 5)
+2. View data:
+    * In the command line, change directory
+        * cd src/data
+    * Open the SQL shell
+        * sqlite3 MM_Reach.db
+    * Optional: Turn on headers
+        * .header on
+    * View the data
+        * SELECT * FROM game_data;
+    * Exit the sql shell
+        * .exit
 
-Enable the script (1st time): </br>
-```
-chmod +x ./play_LocalMM.sh
-```
-
-Run: </br>
-```
-./play_LocalMM.sh
-```
-Optional: Display the leaderboard (default: top 3 players; example shows 5)
-```
-./play_LocalMM.sh --leaderboard 5</br>
-```
-
-View data:
-Navigate to database directory
-```
-cd src/data
-```
-
-Open the SQL shell
-```
-sqlite3 MM_Reach.db
-```
-
-Optional: Turn on headers
-```
-.header on
-SELECT * FROM game_data;
-```
-Exit the sql shell
-```
-.exit
-```
+### To run and show leaderboard
 
 
-#### Docker Execution
+
+### To build and run in the Docker container:
 1. Start the Desktop Docker
 2. In the game directory's command line , enable script access(1st time):
-```
-chmod +x ./play_DockerMM.sh
-```
-
-3. Build and run the container:
-```
-./play_DockerMM.sh
-``` 
-View Data in Docker:
-1. Start game again, but don't play. Open another terminal and enter the bash shell:
-```
-docker exec -it game /bin/bash
-```    
-Change directory to the data dir and open the SQLite shell.Turn header view on, and view the data:
-```
-cd src/data
-sqlite3 MM_Reach.db
-.header on
-SELECT * FROM game_data;
-
-```
-Exit the SQLite shell:
-```
-.exit
-```
-
-Exit the container's shell:
-```
-.exit
-```
-
+    * chmod +x ./play_DockerMM.sh
+3. Compile / Run
+    * ./play_DockerMM.sh 
+4. Check data:
+    * .Start game again, but don't play:
+      * ./play_DockerMM.sh
+    * Open another terminal and enter container bash shell:
+      * docker exec -it game /bin/bash
+    * Change directory to the data dir
+      * cd src/data
+    * Open the sql shell, MM_Reach database
+      * sqlite3 MM_Reach.db
+    * Turn header view on
+      * .header on
+    * View the data
+      * SELECT * FROM game_data;
+    * Exit the sql shell
+      * .exit
+    * Exit the container's bash shell
+      * exit
 </br>
 </br>
 
@@ -171,7 +137,7 @@ Exit the container's shell:
 
 ## Design
 
-I created this in Java, aspiring to use Object Oriented Programming. Creating the class structure is challenging for me, and I thought about the nouns I was modelling. 
+I created this in Java, aspiring to use Object Oriented Programming and SOLID Principles. Creating the class structure is challenging for me, and I thought about the nouns I was modelling. 
 
 
 #### Unified Modeling Language Diagram
