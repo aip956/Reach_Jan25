@@ -23,22 +23,24 @@ public class GameSetup {
 
     public List<Guesser> setupPlayers(GameDataDAO gameDataDAO, String[] args) {
         List<Guesser> players = new ArrayList<>();
-        int numPlayers;
+        int numPlayers = 1;
 
-        while (true) {
-            try {
-                // Get num of players
-                System.out.print("Enter number of players: ");
-                numPlayers = Integer.parseInt(scanner.nextLine());
-                if (numPlayers <= 0) {
-                    System.out.println("Number of players must be > 0. Enter again.");
-                    continue;
-                }
-                break; // Exit loop if input is valid
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input; please enter a valid number.");
-            }
-        }
+        // Default player
+
+        // while (true) {
+        //     try {
+        //         // Get num of players
+        //         System.out.print("Enter number of players: ");
+        //         numPlayers = Integer.parseInt(scanner.nextLine());
+        //         if (numPlayers <= 0) {
+        //             System.out.println("Number of players must be > 0. Enter again.");
+        //             continue;
+        //         }
+        //         break; // Exit loop if input is valid
+        //     } catch (NumberFormatException e) {
+        //         System.out.println("Invalid input; please enter a valid number.");
+        //     }
+        // }
             
         // Set up player names and levels
         for (int i = 0; i < numPlayers; i++) {
@@ -46,21 +48,22 @@ public class GameSetup {
             String playerName = scanner.nextLine();
 
             // Prompt for level
-            System.out.println("Select level for " + playerName + " (1 = Beginner, 2 = Medium, 3 = Hard): ");
-            int levelChoice;
-            while(true) { // Loop until valid level choice made
-                try {
-                    levelChoice = Integer.parseInt(scanner.nextLine());
-                    if (levelChoice < 1 || levelChoice > 3) {
-                        System.out.println("Invalid choice; select 1, 2, or 3.");
-                        continue;
-                    }
-                    break;
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input; select 1, 2, or 3.");
-                }
-            }
-            PlayerLevel level = PlayerLevel.fromChoice(levelChoice); // Use static method
+            PlayerLevel level = PlayerLevel.MEDIUM;
+        //     System.out.println("Select level for " + playerName + " (1 = Beginner, 2 = Medium, 3 = Hard): ");
+        //     int levelChoice;
+        //     while(true) { // Loop until valid level choice made
+        //         try {
+        //             levelChoice = Integer.parseInt(scanner.nextLine());
+        //             if (levelChoice < 1 || levelChoice > 3) {
+        //                 System.out.println("Invalid choice; select 1, 2, or 3.");
+        //                 continue;
+        //             }
+        //             break;
+        //         } catch (NumberFormatException e) {
+        //             System.out.println("Invalid input; select 1, 2, or 3.");
+        //         }
+        //     }
+        //     PlayerLevel level = PlayerLevel.fromChoice(levelChoice); // Use static method
             players.add(new Guesser(playerName, level, scanner)); // Pass player name; shared scanner; instantiate guesser
         }
         System.out.println("Players added: " + players.size());
