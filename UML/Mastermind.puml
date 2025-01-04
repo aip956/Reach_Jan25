@@ -1,6 +1,22 @@
 @startuml
 skinparam classAttributeIconSize 0
 
+' Main Class
+class MyMastermind {
+    + main(String[]): void
+}
+
+' View
+class GameUI {
+    + displayMessage(String): void
+    + close(): void
+}
+
+' Utils
+class ValidationUtils {
+    {static} + VALID_GUESS_PATTERN: String
+}
+
 ' Models
 class Game {
     - List<Guesser> players
@@ -8,35 +24,28 @@ class Game {
     - String secretCode
     - List<String> guesses
     - boolean solved
-    - Map<String, Integer> playerAttempts
-    - String formattedDate
-    - int gameID
-    + startGame()
+    - GameDataDAO gameDataDAO
+    + startGame(): void
     + provideFeedback(Player, String): String
-    + isValidGuess(String): boolean
-    + finalizeGameData()
+    + finalizeGameData(): void
 }
 
-class Player {
+abstract class Player {
     # String playerName
-    # PlayerLevel level
     + getPlayerName(): String
-    + getLevel(): PlayerLevel
     {abstract} + makeGuess(): String
 }
 
 class Guesser {
     - List<String> guesses
+    - PlayerLevel level
     + makeGuess(): String
-    + getGuesses(): List<String
-    + hasSolved(String): boolean
+    + getGuesses(): List<String>
 }
 
-enum PlayerLevel {
-    + BEGINNER
-    + MEDIUM
-    + HARD
-    + fromChoice(int): PlayerLevel
+class PlayerLevel {
+    - int maxAttempts
+    - boolean showDetailedFb
     + getMaxAttempts(): int
     + isShowDetailedFb(): boolean
 }
@@ -44,19 +53,16 @@ enum PlayerLevel {
 class SecretKeeper {
     - String secretCode
     + getSecretCode(): String
-    + initializeSecretCode(): String
 }
 
 ' DAO
-class GameDataDAO {
-    {abstract} + saveGameData(Game): void
-    {abstract} + getLeaderboard(int): List<Game>
+interface GameDataDAO {
+    + saveGameData(Game): void
 }
 
 class SQLiteGameDataDAO {
     - String dbPath
     + saveGameData(Game): void
-    + getLeaderboard(int): List<Game>
 }
 
 class DAOFactory {
@@ -65,34 +71,28 @@ class DAOFactory {
 
 ' DB Connection
 class DatabaseConnectionManager {
-    - Connection connection
     + getConnection(String): Connection
     + closeConnection(): void
 }
 
-' Controllers
+' Controller
 class GameSetup {
-    - Scanner scanner
     + setupPlayers(GameDataDAO, String[]): List<Guesser>
-    + checkDebugMode(String[]): boolean
-}
-
-class LeaderboardMngr {
-    - GameDataDAO gameDataDAO
-    + handleLeaderboard(String[]): void
-    + displayLeaderboard(int): void
 }
 
 ' Relationships
+MyMastermind --> GameSetup : uses
+MyMastermind --> Game : starts
 Game --> Guesser : uses
 Game --> SecretKeeper : uses
-Game --> GameDataDAO : uses
-Player --> PlayerLevel : uses
-Guesser --|> Player : extends
-SQLiteGameDataDAO --|> GameDataDAO : implements
+Game --> GameUI : uses
+Game --> GameDataDAO : stores data
+Game ..> ValidationUtils : uses
+SecretKeeper ..> ValidationUtils : uses
+Guesser ..> PlayerLevel : configures
+Player <|-- Guesser
+GameDataDAO <|.. SQLiteGameDataDAO : implements
 DAOFactory --> GameDataDAO : creates
-LeaderboardMngr --> GameDataDAO : uses
-GameSetup --> Guesser : creates
-DatabaseConnectionManager ..> SQLiteGameDataDAO : supports
+SQLiteGameDataDAO ..> DatabaseConnectionManager : depends on
 
 @enduml
