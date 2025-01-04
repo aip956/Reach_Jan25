@@ -2,7 +2,7 @@
 *.class
 
 # Compiled bytecode
-*.jar
+# *.jar allowing files to be in repo
 *.war
 *.ear
 
