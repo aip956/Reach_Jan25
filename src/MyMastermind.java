@@ -45,7 +45,7 @@ public class MyMastermind {
     
     
         // Intitialize LeaderboardMngr
-        LeaderboardMngr leaderboardMngr = new LeaderboardMngr(gameDataDAO);
+        // LeaderboardMngr leaderboardMngr = new LeaderboardMngr(gameDataDAO);
         Scanner scanner = new Scanner(System.in);
         GameSetup gameSetup = new GameSetup(scanner);
 
@@ -64,7 +64,7 @@ public class MyMastermind {
             game.startGame();
 
             // Handle leaderboard logic
-            leaderboardMngr.handleLeaderboard(args);
+            // leaderboardMngr.handleLeaderboard(args);
 
         } finally {
             System.out.println("Game finished.");

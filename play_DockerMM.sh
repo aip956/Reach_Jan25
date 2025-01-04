@@ -11,5 +11,6 @@ docker-compose up --build  -d
 sleep 2
 
 # Start the game
-docker exec -it game sh -c "java -cp '.:src/lib/*:src' MyMastermind --l 2"
-# docker-compose up -d && docker exec -it game sh -c "java -cp '.:src/lib/*:src' MyMastermind --l 2"
+docker exec -it game sh -c "java -cp '.:src/lib/*:src' MyMastermind"
+
+# docker exec -it game sh -c "java -cp '.:src/lib/*:src' MyMastermind --l 2"
