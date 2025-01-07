@@ -33,10 +33,10 @@ public class MyMastermind {
         String dbType = System.getenv("DB_TYPE");
         dbType = (dbType == null || dbPath.isEmpty()) ? "sqlite" : dbType;
 
-        GameDataDAO gameDataDAO; // Declaring outside try block
+        GameDataDAO gameDataDAO; 
         // Initialize the database connection
         try {
-            gameDataDAO = new SQLiteGameDataDAO(dbPath);
+            gameDataDAO = new SQLiteGameDataDAO(dbPath); // Instantiate
             System.out.println("DB connect success");
         } catch (SQLException e) {
             System.err.println("Database connection failed: " + e.getMessage());

@@ -8,6 +8,8 @@ import Models.PlayerLevel;
 // import Models.SecretKeeper;
 import Models.Game;
 
+import Utils.ValidationUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -34,9 +36,29 @@ public class GameSetup {
             String playerName = scanner.nextLine();
 
             // Prompt for level
-            PlayerLevel level = PlayerLevel.MEDIUM;
-            // logic to select level
+            // PlayerLevel level = PlayerLevel.MEDIUM;
+            // prompt for leve; logic to select level
             // logic to validate level input
+            
+            int levelChoice;
+            System.out.println("Pick a level; 1=Beginner; 2=Medium, 3=Hard");
+            
+            // Validation
+            while(true) {
+                levelChoice = Integer.parseInt(scanner.nextLine());
+                // do a try/catch
+                System.out.println("Level Choice: " + levelChoice);
+                if(levelChoice < 1 || levelChoice > 3) {
+      
+                    System.out.println("Please pick 1, 2, or 3");
+                    continue;
+                }
+                break;
+            }
+            
+
+
+            PlayerLevel level = PlayerLevel.fromChoice(levelChoice);
             
             players.add(new Guesser(playerName, level, scanner)); // Pass player name; shared scanner; instantiate guesser
         }

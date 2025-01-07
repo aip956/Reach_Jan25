@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.ResultSet;
 import java.util.Map;
 
+import javax.naming.spi.DirStateFactory.Result;
 
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class SQLiteGameDataDAO implements GameDataDAO {
 
     @Override
     public void saveGameData(Game game) throws SQLException {
-      
+        // Query for insertion
         String gameSql = "INSERT INTO game_data (" +
             "game_id, " +
             "player_name, " +
@@ -72,14 +73,17 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             "timestamp, " +
             "secret_code, " + 
             "guesses) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"; // placeholders for parameterized queries
 
-
+        // Establish DB connection; opens connection to db using DBConnMgr
+        // Disables autocommit so if any operation fails, transaction rolls back
         try (Connection conn = DatabaseConnectionManager.getConnection(dbPath)) {
             conn.setAutoCommit(false); // Enable transaction for consistency
+            
+            // New game; finds max game_id in the game_data table; adds 1 to max val to generate an id
+            // if no rows exist in table, IFNULL ensures start val = 1
             int gameID;
-        
-            // Create new game_id
+
             try (PreparedStatement stmt = conn.prepareStatement("SELECT IFNULL (MAX(game_id), 0) + 1 AS new_game_id FROM game_data");
                 ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -90,6 +94,10 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             }
 
             // Insert rows for each player
+            // Iterates over all players in the Game instance (game.getPlayers())
+            // Prepares and executes INSERT statement for each player
+
+            // Iterates over all players in the game and extracts the  necessary info about each player for insertion to db
             try (PreparedStatement gameStmt = conn.prepareStatement(gameSql)) {
                 for (Guesser player : game.getPlayers()) {
                     String playerName = player.getPlayerName();
@@ -97,6 +105,8 @@ public class SQLiteGameDataDAO implements GameDataDAO {
                     String playerLevel = player.getLevel().name();
                     // System.out.println("Inserting Player: " + playerName + ", Attempts: " + attemptsMade);
 
+                    // Database Statement Execution
+                    // corresponds to each ? placeholder
                     gameStmt.setInt(1, gameID);
                     gameStmt.setString(2, playerName);
                     gameStmt.setObject(3, attemptsMade); 
@@ -114,20 +124,24 @@ public class SQLiteGameDataDAO implements GameDataDAO {
             conn.commit(); // Commit transaction 
         }
     }
+}
 
 
-    public List<Game> getLeaderboard(int topN) throws SQLException {
-        throw new UnsupportedOperationException("Leaderboard diabled");
-    }
+    // public List<Game> getLeaderboard(int topN) throws SQLException {
+    //     throw new UnsupportedOperationException("Leaderboard diabled");
+    // }
     
     // @Override
-    // Method to get leaderboard
+    // Method to get leaderboard, List<Game> 
     // sql query
     // list for leaderboard
     // make db connection
     // iterate through result set
     // print LB info
     // create new game with this data to populate from db
-    
-}
+
+   
+ 
+        
+
 

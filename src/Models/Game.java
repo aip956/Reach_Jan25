@@ -166,6 +166,8 @@ public class Game {
 
         // Count mis-placed
         for (int i = 0; i < guess.length(); i++) {
+            // if at i, secret != guess, and guess(i) in secretCount
+            // incr misPl, decr secrCount
             if (secretCode.charAt(i) != guess.charAt(i) && secretCount.getOrDefault(guess.charAt(i), 0) > 0) {
                 misPlaced++;
                 secretCount.put(guess.charAt(i), secretCount.get(guess.charAt(i)) - 1);
